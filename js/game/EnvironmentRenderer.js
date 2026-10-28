@@ -288,7 +288,7 @@ export function drawPhaseDoor(renderer, exit, options = {}) {
   renderer.drawRect(signX + 1, signY + 1, signW - 2, 1, solved ? '#a5d6a7' : '#ef9a9a');
   renderer.drawText(solved ? (last ? 'CERTIFICADO' : 'SAÍDA') : 'BLOQUEADA', signX + signW / 2, signY + 4, {
     color: solved ? '#ffffff' : '#ffcdd2',
-    font: '8px "Courier New", monospace',
+    font: '8px "Consolas", "Lucida Console", monospace',
     align: 'center',
     shadow: false
   });

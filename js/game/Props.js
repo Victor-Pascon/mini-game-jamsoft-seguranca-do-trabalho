@@ -9,7 +9,7 @@ function shadow(renderer, x, y, w, h) {
 function labelAbove(renderer, text, x, y, color = COLORS.UI_TEXT) {
   renderer.drawText(text, x, y, {
     color,
-    font: '7px "Courier New", monospace',
+    font: '7px "Consolas", "Lucida Console", monospace',
     align: 'center',
     shadow: true
   });
@@ -254,7 +254,7 @@ export function drawProp(renderer, prop, equipmentSystem = null, options = {}) {
       renderer.drawRect(x + 4, y + 4, w - 8, 10, '#880e4f');
       renderer.drawText('MURAL DE NRS', x + w / 2, y + 5, {
         color: '#ffffff',
-        font: '7px "Courier New", monospace',
+        font: '7px "Consolas", "Lucida Console", monospace',
         align: 'center',
         shadow: false
       });
@@ -301,7 +301,7 @@ export function drawProp(renderer, prop, equipmentSystem = null, options = {}) {
       renderer.drawRect(x + 10, y + 4, w - 20, 8, '#0d3b66');
       renderer.drawText('JAMSOFT', x + w / 2, y + 5, {
         color: COLORS.SAFETY_YELLOW,
-        font: '7px "Courier New", monospace',
+        font: '7px "Consolas", "Lucida Console", monospace',
         align: 'center',
         shadow: false
       });
@@ -536,12 +536,12 @@ export function drawProp(renderer, prop, equipmentSystem = null, options = {}) {
       renderer.drawRect(x + 10, y + 8, 4, 17, accent);
       renderer.drawText(prop.norm || 'NR', x + 19, y + 10, {
         color: accent,
-        font: '9px "Courier New", monospace',
+        font: '9px "Consolas", "Lucida Console", monospace',
         shadow: true
       });
       renderer.drawText(String(prop.title || '').toUpperCase(), x + 58, y + 11, {
         color: COLORS.UI_TEXT,
-        font: '8px "Courier New", monospace',
+        font: '8px "Consolas", "Lucida Console", monospace',
         shadow: false,
         maxWidth: w - 72
       });
@@ -553,12 +553,12 @@ export function drawProp(renderer, prop, equipmentSystem = null, options = {}) {
         for (let index = 0; index < wrapped.length; index++) {
           renderer.drawText(index === 0 ? '•' : ' ', x + 12, lineY, {
             color: accent,
-            font: '8px "Courier New", monospace',
+            font: '8px "Consolas", "Lucida Console", monospace',
             shadow: false
           });
           renderer.drawText(wrapped[index], x + 20, lineY, {
             color: '#d6e2ec',
-            font: '7px "Courier New", monospace',
+            font: '7px "Consolas", "Lucida Console", monospace',
             shadow: false
           });
           lineY += 8;
@@ -568,7 +568,7 @@ export function drawProp(renderer, prop, equipmentSystem = null, options = {}) {
       renderer.drawRect(x + 10, y + h - 11, w - 20, 1, 'rgba(255, 255, 255, 0.10)');
       renderer.drawText('RESUMO EDUCATIVO', x + 12, y + h - 9, {
         color: COLORS.UI_TEXT_DIM,
-        font: '7px "Courier New", monospace',
+        font: '7px "Consolas", "Lucida Console", monospace',
         shadow: false
       });
       break;
@@ -598,7 +598,7 @@ export function drawProp(renderer, prop, equipmentSystem = null, options = {}) {
       }
       renderer.drawText(prop.label || '', x + w / 2, y + h / 2 - 4, {
         color: '#111111',
-        font: '9px "Courier New", monospace',
+        font: '9px "Consolas", "Lucida Console", monospace',
         align: 'center',
         shadow: false
       });
@@ -615,7 +615,7 @@ export function drawProp(renderer, prop, equipmentSystem = null, options = {}) {
       renderer.drawRect(x + 13, y + 12, 3, 3, '#2e7d32');
       renderer.drawText('SAÍDA', x + 23, y + 9, {
         color: '#ffffff',
-        font: '8px "Courier New", monospace',
+        font: '8px "Consolas", "Lucida Console", monospace',
         shadow: false
       });
       break;
@@ -639,7 +639,7 @@ export function drawProp(renderer, prop, equipmentSystem = null, options = {}) {
       renderer.drawRect(x + 3, y + 3, w - 6, 8, '#ffcdd2');
       renderer.drawText('MANTA', x + w / 2, y + 5, {
         color: '#b71c1c',
-        font: '7px "Courier New", monospace',
+        font: '7px "Consolas", "Lucida Console", monospace',
         align: 'center',
         shadow: false
       });
@@ -708,7 +708,7 @@ export function drawRoomLabels(renderer, map) {
 
     renderer.drawText(label, centerX, topY + 2, {
       color: room.color,
-      font: '9px "Courier New", monospace',
+      font: '9px "Consolas", "Lucida Console", monospace',
       align: 'center',
       shadow: true
     });

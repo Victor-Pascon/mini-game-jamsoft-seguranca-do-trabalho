@@ -152,7 +152,7 @@ export function drawIcon(renderer, id, x, y, size = 24) {
       const fontSize = Math.max(10, Math.floor(size * 0.55));
       renderer.drawText('?', x + size / 2, y + size / 2 - fontSize / 2, {
         color: '#ffffff',
-        font: `${fontSize}px "Courier New", monospace`,
+        font: `${fontSize}px "Consolas", "Lucida Console", monospace`,
         align: 'center',
         shadow: false
       });

@@ -8,19 +8,21 @@
 
 ## 0. Status desta versão
 
-- **Versão:** 1.1
+- **Versão:** 1.2
 - **Data de referência:** 28/10/2026
 - **Ambiente de validação:** navegador Chromium/Edge em desktop, servidor local `npm start`.
-- **Registro detalhado:** [qa/2026-10-28-linear-phases.md](qa/2026-10-28-linear-phases.md) e [qa/2026-10-27-v1.0-smoke.md](qa/2026-10-27-v1.0-smoke.md) (histórico).
+- **Registro detalhado:** [qa/2026-10-28-ui-inventory.md](qa/2026-10-28-ui-inventory.md), [qa/2026-10-28-linear-phases.md](qa/2026-10-28-linear-phases.md) e [qa/2026-10-27-v1.0-smoke.md](qa/2026-10-27-v1.0-smoke.md) (histórico).
 
 | Verificação | Status | Observação |
 | --- | --- | --- |
-| `npm test` | ✅ Passou | Sintaxe dos 30 JS + smoke test de dados, 10 fases e lógica |
+| `npm test` | ✅ Passou | Sintaxe dos 32 JS + smoke test de dados, 10 fases, inventário e decoração |
+| Menu e legibilidade | ✅ Validado | Identidade JAMSOFT em vermelho/preto/branco e textos nítidos com backing store 2x |
 | Fluxo de desafio e EPI | ✅ Validado | Helena/NR-6, incluindo erro, dica, acerto e capacete |
 | Fluxo completo das 10 fases | ✅ Validado | Playthrough automatizado: desafio → porta → próxima sala → certificado |
 | Porta de fase | ✅ Validado | Bloqueada sem EPI; libera após o acerto e carrega a próxima NR |
 | Manual de NRs | ✅ Validado | Lista, página, detalhe e fechamento |
-| Save parcial | ✅ Validado | Reload + CONTINUAR restaura a fase atual |
+| Inventário e decoração | ✅ Validado | `I`, estatísticas, prévia, equipar/remover pin, adesivo e faixa |
+| Save parcial | ✅ Validado | Reload + CONTINUAR restaura fase, decoração e tempo jogado |
 | Save completo | ✅ Validado | Abre direto no certificado |
 | Certificado e reset | ✅ Validado | Confirmação volta ao menu e apaga save |
 | Áudio/mute | ✅ Validado | Alternância e persistência |
@@ -62,7 +64,8 @@ npm start
 - [ ] Cada desafio tem 4 alternativas e 1 correta inequívoca.
 - [ ] Manual tem 12 cartas (10 desafios + NR-5 + NR-7).
 - [ ] Existem 10 fases lineares, uma por NR, na ordem do HUD.
-- [ ] Resolução fixa 640×480 e mapa 20×15 de 32 px.
+- [ ] Inventário tem 3 itens cosméticos, sem efeito sobre a proteção.
+- [ ] Resolução lógica 640×480 com backing store 1280×960 e mapa 20×15 de 32 px.
 - [ ] Controles são apenas por teclado.
 - [ ] Disclaimer educativo está em README, manual e certificado.
 - [ ] A experiência cabe em 5–10 minutos.
@@ -79,12 +82,15 @@ npm start
 - [ ] WASD e setas movem o personagem.
 - [ ] Espaço/Enter/Z confirmam.
 - [ ] `1`–`4` selecionam alternativas.
-- [ ] `M`, `F`, `V` e `Esc` funcionam.
+- [ ] `M`, `I`, `F`, `V` e `Esc` funcionam.
+- [ ] `I` abre/fecha o inventário somente na exploração.
 - [ ] Ao perder foco, teclas não ficam “presas”.
 
 ### 3.2 Renderer e colisão
 
-- [ ] O canvas permanece 640×480 sem distorção.
+- [ ] A resolução lógica permanece 640×480, sem distorção, com backing store 1280×960.
+- [ ] Textos e sprites permanecem nítidos na escala da feira.
+- [ ] Scanlines/vinheta não cobrem as áreas de leitura.
 - [ ] Paredes, props e limites do mapa bloqueiam o jogador.
 - [ ] O jogador não atravessa NPCs nem sai do mapa.
 - [ ] A porta bloqueada impede a passagem e a porta liberada carrega a próxima fase.
@@ -96,9 +102,9 @@ npm start
 ### 3.3 Save, áudio e fullscreen
 
 - [ ] Save é criado ao conquistar o primeiro EPI.
-- [ ] Save é atualizado nos EPIs seguintes e ao atravessar uma porta.
-- [ ] `CONTINUAR` restaura fase, posição, EPIs e desafios.
-- [ ] Save antigo sem fase é migrado para a primeira NR pendente.
+- [ ] Save é atualizado nos EPIs seguintes, ao atravessar uma porta e ao trocar a decoração.
+- [ ] `CONTINUAR` restaura fase, posição, EPIs, desafios, decoração e tempo jogado.
+- [ ] Save antigo sem fase é migrado para a primeira NR pendente; sem decoração, usa o pin padrão.
 - [ ] Save com 10 EPIs abre direto no certificado.
 - [ ] Save inválido não impede o jogo de abrir.
 - [ ] Concluir certificado apaga o save.
@@ -150,7 +156,20 @@ npm start
 - [ ] O detalhe mostra resumo, regras, EPI e status.
 - [ ] O aviso educativo e a fonte aparecem.
 
-### 4.4 Certificado
+### 4.4 Inventário e decoração
+
+- [ ] `I` abre e fecha o inventário durante a exploração.
+- [ ] O tempo jogado avança e é restaurado pelo save.
+- [ ] Fase atual, fases concluídas e EPIs adquiridos conferem com o HUD.
+- [ ] Os 10 EPIs aparecem com estado bloqueado/adquirido e seus nomes.
+- [ ] A prévia mostra o personagem com EPIs e decoração.
+- [ ] Pin JAMSOFT pode ser equipado/removido e persiste no save.
+- [ ] Adesivo de Capacete só libera com o capacete.
+- [ ] Faixa de Guardião só libera após 5 fases.
+- [ ] A opção de material de estudo abre o Manual de NRs.
+- [ ] Equipar/remover decoração não altera a proteção nem a progressão.
+
+### 4.5 Certificado
 
 - [ ] A porta da 10ª fase aciona o certificado.
 - [ ] O certificado mostra os 10 ícones.
@@ -199,28 +218,30 @@ npm start
 - [ ] Há texto alternativo/descrição do jogo no HTML.
 - [ ] Contraste de texto e painéis é suficiente.
 - [ ] Status não depende apenas de cor (nome, ícone, contador).
-- [ ] Fontes permanecem legíveis no monitor da feira.
-- [ ] Nenhum texto essencial fica cortado em 640×480.
+- [ ] Fontes permanecem legíveis e nítidas no monitor da feira.
+- [ ] Nenhum texto essencial fica cortado em 640×480 lógico.
+- [ ] O nome do estado (bloqueado, equipado, concluído) acompanha a cor.
 - [ ] A escala CSS mantém proporção 4:3.
 - [ ] Fullscreen não é obrigatório para jogar.
 - [ ] Mensagens de erro/sucesso são visíveis e duradouras o suficiente.
 
 ---
 
-## 7. QA no navegador — smoke de 10 passos
+## 7. QA no navegador — smoke de 11 passos
 
 Executar em uma janela anônima, com `localStorage` limpo.
 
-- [ ] 1. Abrir `http://localhost:8000`; menu renderiza.
+- [ ] 1. Abrir `http://localhost:8000`; menu renderiza com a identidade JAMSOFT e texto nítido.
 - [ ] 2. Navegar por NOVO JOGO, CONTINUAR e COMO JOGAR.
 - [ ] 3. Iniciar NOVO JOGO; concluir a introdução com Espaço.
 - [ ] 4. Mover com WASD/setas; verificar colisão.
 - [ ] 5. Conversar com Helena; errar; ver dica; voltar; acertar.
 - [ ] 6. Ver o capacete no sprite e no HUD; conferir a porta verde e atravessar para a Fase 2.
 - [ ] 7. Abrir o manual (`M`); navegar, abrir detalhe e voltar.
-- [ ] 8. Recarregar; usar CONTINUAR; conferir fase, progresso e posição.
-- [ ] 9. Completar as 10 fases; atravessar a última porta e conferir o certificado.
-- [ ] 10. Confirmar; voltar ao menu; conferir save apagado.
+- [ ] 8. Abrir o inventário (`I`); conferir estatísticas, equipar/remover decoração e abrir o manual pela opção de estudo; voltar.
+- [ ] 9. Recarregar; usar CONTINUAR; conferir fase, progresso, posição, decoração e tempo.
+- [ ] 10. Completar as 10 fases; atravessar a última porta e conferir o certificado.
+- [ ] 11. Confirmar; voltar ao menu; conferir save apagado.
 
 ### Console
 
@@ -245,7 +266,7 @@ Executar em uma janela anônima, com `localStorage` limpo.
 
 - [ ] Notebook carregado e conectado à energia.
 - [ ] Monitor/configuração de vídeo definidos.
-- [ ] Teclado testado (setas, WASD, Espaço, Enter, M, F, V, Esc, 1–4).
+- [ ] Teclado testado (setas, WASD, Espaço, Enter, M, I, F, V, Esc, 1–4).
 - [ ] Som testado no volume adequado.
 - [ ] Mouse não é necessário; se presente, não atrapalha.
 - [ ] Tela limpa, sem notificações ou janelas pessoais.
@@ -268,9 +289,10 @@ Executar em uma janela anônima, com `localStorage` limpo.
 2. **0:30–1:00** — Novo jogo; ler a introdução.
 3. **1:00–2:00** — Conversar com Helena (NR-6), errar de propósito, mostrar dica, acertar.
 4. **2:00–2:30** — Mostrar o capacete no sprite e o HUD.
-5. **2:30–3:30** — Abrir o manual (`M`), mostrar NR-1 e NR-35.
-6. **3:30–4:30** — Conduzir mais 1–2 desafios e explicar o vínculo NR → risco → EPI.
-7. **4:30–5:00** — Mostrar o certificado (se houver save preparado) ou convidar o visitante a continuar.
+5. **2:30–3:00** — Abrir o inventário (`I`) e mostrar tempo, progresso e decoração.
+6. **3:00–3:40** — Abrir o manual (`M`), mostrar NR-1 e NR-35.
+7. **3:40–4:30** — Conduzir mais 1–2 desafios e explicar o vínculo NR → risco → EPI.
+8. **4:30–5:00** — Mostrar o certificado (se houver save preparado) ou convidar o visitante a continuar.
 
 ### 8.4 Plano de incidente
 
@@ -288,7 +310,7 @@ Executar em uma janela anônima, com `localStorage` limpo.
 
 ## 9. Reset e privacidade
 
-- [ ] O save contém apenas posição, EPIs, desafios e data.
+- [ ] O save contém apenas posição, EPIs, desafios, fase, decoração, tempo jogado e data.
 - [ ] Nenhum dado pessoal é coletado.
 - [ ] Nenhum analytics/rede é usado.
 - [ ] O certificado apaga o save ao final.

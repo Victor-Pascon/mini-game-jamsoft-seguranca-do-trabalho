@@ -1,12 +1,13 @@
 :root {
-  --jamsoft-blue: #0d47a1;
-  --jamsoft-blue-light: #1565c0;
-  --jamsoft-orange: #ff6f00;
-  --jamsoft-yellow: #ffc107;
-  --jamsoft-dark: #050a10;
-  --jamsoft-panel: #0b1a2b;
-  --jamsoft-text: #f0f0f0;
-  --jamsoft-muted: #9aa5b1;
+  --jamsoft-red: #d71920;
+  --jamsoft-red-light: #ff3b4a;
+  --jamsoft-red-dark: #8f0f18;
+  --jamsoft-black: #050505;
+  --jamsoft-charcoal: #141414;
+  --jamsoft-panel: #111111;
+  --jamsoft-white: #ffffff;
+  --jamsoft-text: #f7f7f7;
+  --jamsoft-muted: #b8b8b8;
 }
 
 * {
@@ -27,10 +28,10 @@ body {
   padding: 44px 20px 24px;
   overflow: hidden;
   background:
-    radial-gradient(circle at 50% 30%, rgba(21, 101, 192, 0.23), transparent 55%),
-    linear-gradient(135deg, #050b16 0%, #0a1a2e 48%, #101820 100%);
+    radial-gradient(circle at 50% 30%, rgba(215, 25, 32, 0.30), transparent 58%),
+    linear-gradient(135deg, #050505 0%, #16090b 48%, #050505 100%);
   color: var(--jamsoft-text);
-  font-family: "Courier New", monospace;
+  font-family: "Trebuchet MS", "Segoe UI", Arial, sans-serif;
   user-select: none;
   -webkit-user-select: none;
 }
@@ -42,7 +43,7 @@ body::before {
   pointer-events: none;
   background-image: repeating-linear-gradient(
     45deg,
-    rgba(255, 193, 7, 0.035) 0 18px,
+    rgba(255, 255, 255, 0.028) 0 18px,
     transparent 18px 36px
   );
   z-index: 0;
@@ -52,14 +53,13 @@ body::before {
   position: relative;
   width: min(1200px, 96vw, calc((100vh - 72px) * 4 / 3));
   aspect-ratio: 4 / 3;
-  border: 4px solid var(--jamsoft-orange);
+  border: 4px solid var(--jamsoft-red);
   border-radius: 10px;
-  background: var(--jamsoft-dark);
+  background: var(--jamsoft-black);
   box-shadow:
-    0 0 0 2px rgba(255, 193, 7, 0.38),
-    0 0 28px rgba(255, 111, 0, 0.28),
-    0 24px 60px rgba(0, 0, 0, 0.65),
-    0 0 90px rgba(13, 71, 161, 0.28);
+    0 0 0 2px rgba(255, 255, 255, 0.16),
+    0 0 30px rgba(215, 25, 32, 0.34),
+    0 24px 60px rgba(0, 0, 0, 0.72);
   z-index: 1;
   animation: border-pulse 4.5s ease-in-out infinite;
 }
@@ -71,7 +71,7 @@ body::before {
   left: 0;
   width: 100%;
   text-align: center;
-  color: var(--jamsoft-yellow);
+  color: var(--jamsoft-white);
   font-size: 12px;
   font-weight: 700;
   letter-spacing: 2.2px;
@@ -85,13 +85,8 @@ body::before {
   inset: 0;
   border-radius: 6px;
   pointer-events: none;
-  background: repeating-linear-gradient(
-    0deg,
-    rgba(0, 0, 0, 0.11) 0 1px,
-    transparent 1px 3px
-  );
-  opacity: 0.35;
-  mix-blend-mode: multiply;
+  background: none;
+  opacity: 0;
 }
 
 #game-canvas {
@@ -99,9 +94,8 @@ body::before {
   width: 100%;
   height: 100%;
   border-radius: 6px;
-  background: #0a0a1a;
-  image-rendering: pixelated;
-  image-rendering: crisp-edges;
+  background: #050505;
+  image-rendering: auto;
   outline: none;
 }
 
@@ -116,25 +110,25 @@ body::before {
   gap: 8px;
   border-radius: 6px;
   background:
-    radial-gradient(circle at 50% 45%, rgba(21, 101, 192, 0.35), transparent 55%),
-    var(--jamsoft-dark);
-  color: var(--jamsoft-yellow);
+    radial-gradient(circle at 50% 45%, rgba(215, 25, 32, 0.35), transparent 58%),
+    var(--jamsoft-black);
+  color: var(--jamsoft-white);
   text-align: center;
   transition: opacity 0.3s ease;
 }
 
 #boot-overlay strong {
-  color: var(--jamsoft-blue-light);
+  color: var(--jamsoft-muted);
   font-size: 13px;
   letter-spacing: 3px;
 }
 
 #boot-overlay span {
-  color: var(--jamsoft-yellow);
+  color: var(--jamsoft-white);
   font-size: clamp(18px, 3vw, 34px);
   font-weight: 700;
   letter-spacing: 2px;
-  text-shadow: 0 0 18px rgba(255, 193, 7, 0.5);
+  text-shadow: 0 0 18px rgba(255, 59, 74, 0.55);
 }
 
 #boot-overlay small {
@@ -169,8 +163,8 @@ body::before {
   justify-content: center;
   margin: 0;
   padding: 24px;
-  background: var(--jamsoft-dark);
-  color: var(--jamsoft-yellow);
+  background: var(--jamsoft-black);
+  color: var(--jamsoft-white);
   text-align: center;
 }
 
@@ -205,17 +199,15 @@ body::before {
   0%,
   100% {
     box-shadow:
-      0 0 0 2px rgba(255, 193, 7, 0.38),
-      0 0 28px rgba(255, 111, 0, 0.28),
-      0 24px 60px rgba(0, 0, 0, 0.65),
-      0 0 90px rgba(13, 71, 161, 0.28);
+      0 0 0 2px rgba(255, 255, 255, 0.16),
+      0 0 30px rgba(215, 25, 32, 0.34),
+      0 24px 60px rgba(0, 0, 0, 0.72);
   }
   50% {
     box-shadow:
-      0 0 0 2px rgba(255, 193, 7, 0.52),
-      0 0 36px rgba(255, 111, 0, 0.38),
-      0 24px 60px rgba(0, 0, 0, 0.65),
-      0 0 110px rgba(13, 71, 161, 0.38);
+      0 0 0 2px rgba(255, 255, 255, 0.28),
+      0 0 40px rgba(255, 59, 74, 0.46),
+      0 24px 60px rgba(0, 0, 0, 0.72);
   }
 }
 

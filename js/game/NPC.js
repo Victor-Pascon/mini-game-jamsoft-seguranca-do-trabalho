@@ -134,7 +134,7 @@ export class NPC extends Entity {
       renderer.drawRect(plateX + 3, plateY, plateW - 3, 1, 'rgba(255, 255, 255, 0.18)');
       renderer.drawText(firstName, this._x + this._width / 2, plateY + 3, {
         color: COLORS.UI_TEXT,
-        font: '8px "Courier New", monospace',
+        font: '8px "Consolas", "Lucida Console", monospace',
         align: 'center',
         shadow: true
       });
@@ -151,7 +151,7 @@ export class NPC extends Entity {
       renderer.drawRect(statusX + 2, statusY + 2, 8, 8, COLORS.SAFETY_GREEN);
       renderer.drawText('✓', statusX + 6, statusY - 1, {
         color: '#ffffff',
-        font: '10px "Courier New", monospace',
+        font: '10px "Consolas", "Lucida Console", monospace',
         align: 'center',
         shadow: false
       });
@@ -161,7 +161,7 @@ export class NPC extends Entity {
       renderer.drawRect(statusX + 2, statusY + 2, 8, 8, COLORS.SAFETY_YELLOW);
       renderer.drawText('!', statusX + 6, statusY - 1, {
         color: '#111111',
-        font: '11px "Courier New", monospace',
+        font: '11px "Consolas", "Lucida Console", monospace',
         align: 'center',
         shadow: false
       });

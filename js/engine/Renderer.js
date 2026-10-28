@@ -1,19 +1,30 @@
 import { COLORS, FONTS, shadeColor, hexToRgba, hash2d } from '../design-tokens/snes-theme.js';
 
 /**
- * Renderer - toda a renderização é feita em canvas 640x480.
- * Mantém o estilo SNES do projeto original, com texturas determinísticas,
- * scanlines, vinheta e painéis com bordas 3D.
+ * Renderer - toda a renderização é feita em coordenadas lógicas 640x480.
+ * O canvas usa um backing store 2x para manter a leitura nítida em telas de
+ * alta densidade. As coordenadas, colisões e layouts continuam em 640x480.
  */
+const LOGICAL_WIDTH = 640;
+const LOGICAL_HEIGHT = 480;
+const BACKING_SCALE = 2;
+
 export class Renderer {
   constructor(canvas) {
     this._canvas = canvas;
+    this._width = LOGICAL_WIDTH;
+    this._height = LOGICAL_HEIGHT;
+
+    // Nitidez: o dobro de pixels no canvas, sem mudar o espaço de coordenadas.
+    canvas.width = LOGICAL_WIDTH * BACKING_SCALE;
+    canvas.height = LOGICAL_HEIGHT * BACKING_SCALE;
+
     this._ctx = canvas.getContext('2d');
-    this._width = canvas.width;
-    this._height = canvas.height;
+    this._ctx.setTransform(BACKING_SCALE, 0, 0, BACKING_SCALE, 0, 0);
+    this._ctx.imageSmoothingEnabled = false;
+    this._ctx.textRendering = 'optimizeLegibility';
     this._pixelSize = 2;
     this._scanlineOffset = 0;
-    this._ctx.imageSmoothingEnabled = false;
   }
 
   clear(color = COLORS.SNES_DARK) {
@@ -22,7 +33,7 @@ export class Renderer {
   }
 
   drawScanlines() {
-    this._ctx.fillStyle = 'rgba(0, 0, 0, 0.10)';
+    this._ctx.fillStyle = 'rgba(0, 0, 0, 0.045)';
     for (let y = 0; y < this._height; y += 4) {
       this._ctx.fillRect(0, y, this._width, 2);
     }
@@ -30,11 +41,11 @@ export class Renderer {
 
   drawVignette() {
     const gradient = this._ctx.createRadialGradient(
-      this._width / 2, this._height / 2, this._width * 0.30,
+      this._width / 2, this._height / 2, this._width * 0.38,
       this._width / 2, this._height / 2, this._width * 0.72
     );
     gradient.addColorStop(0, 'rgba(0, 0, 0, 0)');
-    gradient.addColorStop(1, 'rgba(0, 0, 0, 0.42)');
+    gradient.addColorStop(1, 'rgba(0, 0, 0, 0.24)');
     this._ctx.fillStyle = gradient;
     this._ctx.fillRect(0, 0, this._width, this._height);
   }
@@ -92,6 +103,7 @@ export class Renderer {
     const {
       bg = COLORS.UI_BG_SOFT,
       border = COLORS.UI_BORDER,
+      inner = '#050a10',
       shadow = true,
       highlight = true
     } = options;
@@ -100,7 +112,7 @@ export class Renderer {
       this.drawRect(x + 5, y + 5, width, height, 'rgba(0, 0, 0, 0.48)');
     }
     this.drawRect(x, y, width, height, border);
-    this.drawRect(x + 2, y + 2, width - 4, height - 4, '#050a10');
+    this.drawRect(x + 2, y + 2, width - 4, height - 4, inner);
     this.drawRect(x + 4, y + 4, width - 8, height - 8, bg);
 
     // Gradiente sutil para dar profundidade ao painel.
@@ -229,6 +241,11 @@ export class Renderer {
 
     this._ctx.shadowBlur = 0;
     this._ctx.shadowColor = 'transparent';
+  }
+
+  measureText(text, font = FONTS.PRIMARY) {
+    this._ctx.font = font;
+    return this._ctx.measureText(String(text ?? '')).width;
   }
 
   drawTile(tile, tileX, tileY, size, tileIndex = 0) {

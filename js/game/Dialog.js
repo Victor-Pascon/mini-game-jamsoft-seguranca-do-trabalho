@@ -194,7 +194,7 @@ export class Dialog {
         renderer.drawRect(badgeX + 1, plateY + 8, badgeW - 2, 14, 'rgba(0, 0, 0, 0.28)');
         renderer.drawText(badge, badgeX + badgeW / 2, plateY + 10, {
           color: accent,
-          font: '8px "Courier New", monospace',
+          font: '8px "Consolas", "Lucida Console", monospace',
           align: 'center',
           shadow: true
         });
@@ -221,7 +221,7 @@ export class Dialog {
     // Cursor de digitação.
     if (!isLineComplete && visibleLines.length > 0) {
       const lastLine = visibleLines[visibleLines.length - 1];
-      const cursorX = textX + lastLine.length * 9.6;
+      const cursorX = textX + renderer.measureText(lastLine, FONTS.DIALOG) + 2;
       const cursorY = textY + (visibleLines.length - 1) * lineHeight + 2;
       if (Math.floor(this._time * 8) % 2 === 0) {
         renderer.drawRect(cursorX, cursorY, 7, 2, COLORS.SAFETY_YELLOW);

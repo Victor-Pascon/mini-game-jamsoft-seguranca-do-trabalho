@@ -200,7 +200,7 @@ export class NormManual {
       titleLines.forEach((line, lineIndex) => {
         renderer.drawText(line, x + 72, y + 9 + lineIndex * 12, {
           color: COLORS.UI_TEXT,
-          font: '10px "Courier New", monospace',
+          font: '10px "Consolas", "Lucida Console", monospace',
           shadow: false
         });
       });

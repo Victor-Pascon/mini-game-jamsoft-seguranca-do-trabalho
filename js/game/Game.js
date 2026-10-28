@@ -13,6 +13,7 @@ import { EquipmentSystem } from './EquipmentSystem.js';
 import { Dialog } from './Dialog.js';
 import { Challenge } from './Challenge.js';
 import { NormManual } from './NormManual.js';
+import { Inventory } from './Inventory.js';
 import { Certificate } from './Certificate.js';
 import { drawProp, drawRoomLabels, getNearbyInteractiveProp } from './Props.js';
 import { drawIcon, drawOverlay } from './EquipmentRenderer.js';
@@ -42,6 +43,7 @@ export class Game {
     this._phaseSolved = false;
 
     this._manual = new NormManual(this._sound);
+    this._inventory = new Inventory(this._sound);
     this._certificate = new Certificate();
     this._dialog = new Dialog();
     this._challenge = new Challenge(this._sound);
@@ -64,6 +66,7 @@ export class Game {
     this._toastTimer = 0;
 
     this._time = 0;
+    this._playTime = 0;
     this._lastTime = 0;
     this._running = false;
     this._rafId = null;
@@ -125,6 +128,7 @@ export class Game {
     this._introDialog = new Dialog();
     this._certificate = new Certificate();
     this._manual = new NormManual(this._sound);
+    this._inventory = new Inventory(this._sound);
 
     this._phaseIndex = 0;
     this._phaseSolved = false;
@@ -132,6 +136,7 @@ export class Game {
     this._nearbyNpc = null;
     this._nearbyProp = null;
     this._nearDoor = false;
+    this._playTime = 0;
 
     this._loadPhase(0);
     this._showIntro = showIntro;
@@ -197,6 +202,7 @@ export class Game {
     this._completedChallenges = Array.isArray(saved.completedChallenges)
       ? [...saved.completedChallenges]
       : [];
+    this._playTime = Number.isFinite(saved.playTime) ? Math.max(0, saved.playTime) : 0;
 
     const savedPhase = Number.isInteger(saved.phase) ? saved.phase : -1;
     let phaseIndex = savedPhase;
@@ -260,7 +266,8 @@ export class Game {
       this._player,
       this._equipment.toArray(),
       this._completedChallenges,
-      this._phaseIndex
+      this._phaseIndex,
+      this._playTime
     );
   }
 
@@ -276,6 +283,10 @@ export class Game {
     if (this._input.isJustPressed('KeyV')) {
       const muted = this._sound.toggleMute();
       this._showToast(muted ? 'Som desligado' : 'Som ligado', 1.6);
+    }
+
+    if (!this._state.is(STATE.MENU)) {
+      this._playTime += deltaTime;
     }
 
     if (this._state.is(STATE.MENU)) {
@@ -345,6 +356,25 @@ export class Game {
       return;
     }
 
+    if (this._inventory.isOpen()) {
+      this._inventory.update(deltaTime, this._input, this._inventoryContext());
+      if (this._inventory.consumeChanged()) {
+        this._saveProgress();
+      }
+      if (this._inventory.consumeStudyRequest()) {
+        this._inventory.close();
+        this._manual.open();
+      }
+      return;
+    }
+
+    if (this._input.isJustPressed('KeyI')) {
+      if (!this._showIntro) {
+        this._inventory.open();
+        return;
+      }
+    }
+
     if (this._input.isJustPressed('KeyM')) {
       this._manual.open();
       return;
@@ -388,6 +418,22 @@ export class Game {
     if (confirm && this._nearbyProp) {
       this._manual.open();
     }
+  }
+
+  _inventoryContext() {
+    return {
+      equipment: this._equipment,
+      player: this._player,
+      stats: {
+        playTime: this._playTime,
+        phaseIndex: this._phaseIndex,
+        phasesCompleted: this._equipment.getCount(),
+        totalPhases: PHASES.length,
+        equipmentCount: this._equipment.getCount(),
+        totalEquipment: this._equipment.getTotal(),
+        challengesCompleted: this._completedChallenges.length
+      }
+    };
   }
 
   _clampLockedExit() {
@@ -619,17 +665,19 @@ export class Game {
     }
 
     this._renderWorld();
+    this._renderer.drawVignette();
 
     if (this._manual.isOpen()) {
-      this._renderer.drawScanlines();
-      this._renderer.drawVignette();
       this._manual.render(this._renderer, this._equipment);
       return;
     }
 
+    if (this._inventory.isOpen()) {
+      this._inventory.render(this._renderer, this._inventoryContext());
+      return;
+    }
+
     this._renderHud();
-    this._renderer.drawScanlines();
-    this._renderer.drawVignette();
 
     if (this._showIntro) {
       this._introDialog.render(this._renderer);
@@ -641,7 +689,7 @@ export class Game {
   }
 
   _renderWorld() {
-    this._renderer.context.drawImage(this._backgroundCanvas, 0, 0);
+    this._renderer.context.drawImage(this._backgroundCanvas, 0, 0, 640, 480);
     drawDust(this._renderer, this._time);
 
     for (const prop of this._map.props) {
@@ -715,7 +763,7 @@ export class Game {
       shadow: false
     });
 
-    this._renderer.drawText('M NORMAS  •  F TELA', 624, 6, {
+    this._renderer.drawText('M NORMAS  •  I INV  •  F TELA', 624, 6, {
       color: COLORS.UI_TEXT_DIM,
       font: FONTS.TINY,
       align: 'right',
@@ -734,7 +782,7 @@ export class Game {
     );
     this._renderer.drawText('WASD/Setas  •  ESPAÇO', 624, 34, {
       color: COLORS.UI_TEXT_DIM,
-      font: '8px "Courier New", monospace',
+      font: FONTS.TINY,
       align: 'right',
       shadow: false
     });
@@ -783,7 +831,7 @@ export class Game {
         446,
         {
           color: COLORS.SAFETY_YELLOW,
-          font: '8px "Courier New", monospace',
+          font: FONTS.TINY,
           align: 'right',
           shadow: false
         }
@@ -842,52 +890,52 @@ export class Game {
 
   _renderMenu() {
     const renderer = this._renderer;
-    renderer.clear('#050a10');
+    renderer.clear(COLORS.JAMSOFT_BLACK);
 
     const ctx = renderer.context;
     const gradient = ctx.createLinearGradient(0, 0, 0, 480);
-    gradient.addColorStop(0, '#0b1a2b');
-    gradient.addColorStop(0.55, '#081018');
-    gradient.addColorStop(1, '#050a10');
+    gradient.addColorStop(0, '#181818');
+    gradient.addColorStop(0.55, '#0c0c0c');
+    gradient.addColorStop(1, '#050505');
     ctx.fillStyle = gradient;
     ctx.fillRect(0, 0, 640, 480);
 
     // Grade sutil de fundo
     for (let x = 0; x < 640; x += 32) {
-      renderer.drawRect(x, 0, 1, 480, 'rgba(255, 255, 255, 0.022)');
+      renderer.drawRect(x, 0, 1, 480, 'rgba(255, 255, 255, 0.018)');
     }
     for (let y = 0; y < 480; y += 32) {
-      renderer.drawRect(0, y, 640, 1, 'rgba(255, 255, 255, 0.022)');
+      renderer.drawRect(0, y, 640, 1, 'rgba(255, 255, 255, 0.018)');
     }
 
-    renderer.drawHazardStripes(0, 0, 640, 6, COLORS.SAFETY_YELLOW, '#111111', 12);
-    renderer.drawHazardStripes(0, 474, 640, 6, COLORS.SAFETY_YELLOW, '#111111', 12);
+    renderer.drawHazardStripes(0, 0, 640, 6, COLORS.JAMSOFT_RED, COLORS.JAMSOFT_BLACK, 12);
+    renderer.drawHazardStripes(0, 474, 640, 6, COLORS.JAMSOFT_RED, COLORS.JAMSOFT_BLACK, 12);
 
-    renderer.drawGlow(320, 66, 210, '#ffc107', 0.06);
+    renderer.drawGlow(320, 66, 220, COLORS.JAMSOFT_RED, 0.12);
 
     renderer.drawText('JAMSOFT TECNOLOGIA', 320, 16, {
-      color: COLORS.SAFETY_BLUE,
+      color: COLORS.JAMSOFT_WHITE,
       font: FONTS.SMALL,
       align: 'center',
       shadow: false
     });
 
-    renderer.drawText('SEGURANÇA EM JOGO', 320, 36, {
-      color: COLORS.SAFETY_YELLOW,
-      font: '40px "Courier New", monospace',
+    renderer.drawText('SEGURANÇA EM JOGO', 320, 34, {
+      color: COLORS.JAMSOFT_WHITE,
+      font: FONTS.MENU_TITLE,
       align: 'center',
       glow: true
     });
 
-    renderer.drawText('A Jornada da Proteção', 320, 86, {
-      color: COLORS.UI_TEXT,
+    renderer.drawText('A Jornada da Proteção', 320, 88, {
+      color: COLORS.JAMSOFT_RED_LIGHT,
       font: FONTS.DIALOG,
       align: 'center',
       shadow: true
     });
 
-    renderer.drawText('Feira de Segurança do Trabalho • Itabaiana/SE', 320, 108, {
-      color: COLORS.UI_TEXT_DIM,
+    renderer.drawText('Feira de Segurança do Trabalho • Itabaiana/SE', 320, 110, {
+      color: COLORS.JAMSOFT_SMOKE,
       font: FONTS.TINY,
       align: 'center',
       shadow: false
@@ -896,20 +944,20 @@ export class Game {
     // Faixa de ícones de EPI
     equipmentList.forEach((item, index) => {
       const x = 160 + index * 32;
-      renderer.drawRect(x, 132, 26, 26, '#0b121b');
+      renderer.drawRect(x, 132, 26, 26, '#0b0b0b');
       renderer.drawRect(x, 132, 26, 2, item.color);
       renderer.drawRect(x, 156, 26, 2, item.color);
       drawIcon(renderer, item.id, x + 1, 133, 24);
     });
 
     renderer.drawText('10 ITENS DE PROTEÇÃO', 320, 164, {
-      color: COLORS.UI_TEXT_DIM,
-      font: '7px "Courier New", monospace',
+      color: COLORS.JAMSOFT_SMOKE,
+      font: FONTS.TINY,
       align: 'center',
       shadow: false
     });
 
-    renderer.drawRect(160, 178, 320, 1, 'rgba(255, 255, 255, 0.12)');
+    renderer.drawRect(160, 178, 320, 1, 'rgba(255, 255, 255, 0.14)');
 
     const options = [
       { label: 'NOVO JOGO', icon: 'play', enabled: true },
@@ -926,35 +974,35 @@ export class Game {
       const selected = this._menuSelection === index;
 
       renderer.drawRect(optionX + 3, y + 3, optionW, optionH, 'rgba(0, 0, 0, 0.42)');
-      renderer.drawRect(optionX, y, optionW, optionH, selected ? COLORS.SAFETY_YELLOW : '#2f3b4a');
-      renderer.drawRect(optionX + 2, y + 2, optionW - 4, optionH - 4, selected ? '#2a1400' : '#0d1622');
-      renderer.drawRect(optionX, y, 4, optionH, selected ? COLORS.SAFETY_ORANGE : '#1b2a3a');
+      renderer.drawRect(optionX, y, optionW, optionH, selected ? COLORS.JAMSOFT_WHITE : '#3a3a3a');
+      renderer.drawRect(optionX + 2, y + 2, optionW - 4, optionH - 4, selected ? '#2a070a' : '#111111');
+      renderer.drawRect(optionX, y, 4, optionH, selected ? COLORS.JAMSOFT_RED : '#2d2d2d');
 
       if (selected) {
         const pulse = 0.5 + 0.5 * Math.sin(this._time * 5);
-        renderer.drawRect(optionX, y, optionW, 2, `rgba(255, 215, 0, ${0.5 + pulse * 0.4})`);
-        renderer.drawRect(optionX - 6, y + 10, 3, optionH - 20, COLORS.SAFETY_YELLOW);
+        renderer.drawRect(optionX, y, optionW, 2, `rgba(255, 59, 74, ${0.45 + pulse * 0.45})`);
+        renderer.drawRect(optionX - 6, y + 10, 3, optionH - 20, COLORS.JAMSOFT_RED_LIGHT);
       }
 
       if (option.icon === 'play') {
-        renderer.drawRect(optionX + 20, y + 12, 4, 16, COLORS.SAFETY_GREEN);
-        renderer.drawRect(optionX + 24, y + 14, 3, 12, COLORS.SAFETY_GREEN);
-        renderer.drawRect(optionX + 27, y + 16, 3, 8, COLORS.SAFETY_GREEN);
+        renderer.drawRect(optionX + 20, y + 12, 4, 16, COLORS.JAMSOFT_RED);
+        renderer.drawRect(optionX + 24, y + 14, 3, 12, COLORS.JAMSOFT_RED_LIGHT);
+        renderer.drawRect(optionX + 27, y + 16, 3, 8, COLORS.JAMSOFT_WHITE);
       } else if (option.icon === 'save') {
-        renderer.drawRect(optionX + 18, y + 12, 16, 16, option.enabled ? COLORS.SAFETY_YELLOW : '#4a4a4a');
-        renderer.drawRect(optionX + 22, y + 12, 8, 7, '#263238');
-        renderer.drawRect(optionX + 21, y + 21, 10, 5, '#ffffff');
-        renderer.drawRect(optionX + 24, y + 23, 4, 2, '#263238');
+        renderer.drawRect(optionX + 18, y + 12, 16, 16, option.enabled ? COLORS.JAMSOFT_WHITE : '#4a4a4a');
+        renderer.drawRect(optionX + 22, y + 12, 8, 7, '#1a1a1a');
+        renderer.drawRect(optionX + 21, y + 21, 10, 5, COLORS.JAMSOFT_RED);
+        renderer.drawRect(optionX + 24, y + 23, 4, 2, '#1a1a1a');
       } else {
-        renderer.drawRect(optionX + 18, y + 12, 16, 16, COLORS.SAFETY_BLUE);
-        renderer.drawRect(optionX + 21, y + 14, 10, 12, '#ffffff');
-        renderer.drawRect(optionX + 25, y + 12, 2, 16, COLORS.SAFETY_BLUE);
+        renderer.drawRect(optionX + 18, y + 12, 16, 16, COLORS.JAMSOFT_RED);
+        renderer.drawRect(optionX + 21, y + 14, 10, 12, COLORS.JAMSOFT_WHITE);
+        renderer.drawRect(optionX + 25, y + 12, 2, 16, COLORS.JAMSOFT_RED);
       }
 
       renderer.drawText(option.label, optionX + 46, y + 11, {
         color: option.enabled
-          ? (selected ? COLORS.SAFETY_YELLOW : COLORS.UI_TEXT)
-          : COLORS.UI_TEXT_DIM,
+          ? COLORS.JAMSOFT_WHITE
+          : COLORS.JAMSOFT_SMOKE,
         font: FONTS.PRIMARY,
         shadow: true
       });
@@ -969,8 +1017,8 @@ export class Game {
         );
         if (!option.enabled) {
           renderer.drawText('sem save', optionX + optionW - 32, y + 27, {
-            color: COLORS.UI_TEXT_DIM,
-            font: '7px "Courier New", monospace',
+            color: COLORS.JAMSOFT_SMOKE,
+            font: FONTS.TINY,
             align: 'right',
             shadow: false
           });
@@ -980,32 +1028,33 @@ export class Game {
 
     // Painel do guardião no canto direito
     renderer.drawPanel(496, 186, 120, 156, {
-      bg: '#0d1622',
-      border: COLORS.SAFETY_YELLOW_DARK
+      bg: '#101010',
+      border: COLORS.JAMSOFT_RED_DARK,
+      inner: '#050505'
     });
-    renderer.drawGlow(556, 224, 46, '#ffc107', 0.10);
+    renderer.drawGlow(556, 224, 46, COLORS.JAMSOFT_RED, 0.14);
     this._drawMenuGuardian(renderer);
     renderer.drawText('GUARDIÃO', 556, 260, {
-      color: COLORS.SAFETY_YELLOW,
+      color: COLORS.JAMSOFT_WHITE,
       font: FONTS.SMALL,
       align: 'center',
       glow: true
     });
     renderer.drawText('DA SEGURANÇA', 556, 273, {
-      color: COLORS.UI_TEXT_DIM,
-      font: '7px "Courier New", monospace',
+      color: COLORS.JAMSOFT_SMOKE,
+      font: FONTS.TINY,
       align: 'center',
       shadow: false
     });
     renderer.drawText('10 EPIs', 556, 298, {
-      color: COLORS.SAFETY_GREEN,
+      color: COLORS.JAMSOFT_WHITE,
       font: FONTS.TINY,
       align: 'center',
       shadow: false
     });
     renderer.drawText('JAMSOFT', 556, 314, {
-      color: COLORS.UI_TEXT_DIM,
-      font: '7px "Courier New", monospace',
+      color: COLORS.JAMSOFT_SMOKE,
+      font: FONTS.TINY,
       align: 'center',
       shadow: false
     });
@@ -1013,7 +1062,7 @@ export class Game {
     const blink = Math.sin(this._time * 4) > -0.2;
     if (blink) {
       renderer.drawText('ESPAÇO / ENTER para selecionar', 320, 360, {
-        color: COLORS.SAFETY_YELLOW,
+        color: COLORS.JAMSOFT_WHITE,
         font: FONTS.SMALL,
         align: 'center',
         glow: true
@@ -1021,7 +1070,7 @@ export class Game {
     }
 
     renderer.drawText('WASD / setas para navegar', 320, 380, {
-      color: COLORS.UI_TEXT_DIM,
+      color: COLORS.JAMSOFT_SMOKE,
       font: FONTS.TINY,
       align: 'center',
       shadow: false
@@ -1034,16 +1083,16 @@ export class Game {
       320,
       408,
       {
-        color: COLORS.UI_TEXT_DIM,
-        font: '9px "Courier New", monospace',
+        color: COLORS.JAMSOFT_SMOKE,
+        font: FONTS.TINY,
         align: 'center',
         shadow: false
       }
     );
 
     renderer.drawText('JAMSOFT TECNOLOGIA • Feira de Segurança do Trabalho', 320, 452, {
-      color: COLORS.UI_TEXT_DIM,
-      font: '8px "Courier New", monospace',
+      color: COLORS.JAMSOFT_SMOKE,
+      font: FONTS.TINY,
       align: 'center',
       shadow: false
     });
@@ -1068,29 +1117,30 @@ export class Game {
 
     // Brilho de equipamento completo.
     const pulse = 0.5 + 0.5 * Math.sin(this._time * 2.6);
-    renderer.drawRect(502, 251, 108, 2, `rgba(255, 215, 0, ${0.20 + pulse * 0.18})`);
+    renderer.drawRect(502, 251, 108, 2, `rgba(255, 59, 74, ${0.20 + pulse * 0.18})`);
   }
 
   _renderMenuHelp() {
     const renderer = this._renderer;
 
-    renderer.drawRect(0, 0, 640, 480, 'rgba(4, 8, 14, 0.94)');
-    renderer.drawHazardStripes(0, 0, 640, 6, COLORS.SAFETY_YELLOW, '#111111', 12);
-    renderer.drawHazardStripes(0, 474, 640, 6, COLORS.SAFETY_YELLOW, '#111111', 12);
+    renderer.drawRect(0, 0, 640, 480, 'rgba(5, 5, 5, 0.96)');
+    renderer.drawHazardStripes(0, 0, 640, 6, COLORS.JAMSOFT_RED, COLORS.JAMSOFT_BLACK, 12);
+    renderer.drawHazardStripes(0, 474, 640, 6, COLORS.JAMSOFT_RED, COLORS.JAMSOFT_BLACK, 12);
 
     renderer.drawPanel(40, 20, 560, 440, {
-      bg: '#0d1622',
-      border: COLORS.SAFETY_ORANGE
+      bg: '#0b0b0b',
+      border: COLORS.JAMSOFT_RED_DARK,
+      inner: '#050505'
     });
 
     renderer.drawText('COMO JOGAR', 56, 36, {
-      color: COLORS.SAFETY_YELLOW,
-      font: FONTS.TITLE,
+      color: COLORS.JAMSOFT_WHITE,
+      font: FONTS.DISPLAY,
       glow: true
     });
 
     renderer.drawText('Sua missão em 6 passos', 56, 70, {
-      color: COLORS.UI_TEXT_DIM,
+      color: COLORS.JAMSOFT_SMOKE,
       font: FONTS.TINY,
       shadow: false
     });
@@ -1099,25 +1149,25 @@ export class Game {
     dialogs.helpSteps.forEach((step, index) => {
       const lines = wrapText(step, 72);
       renderer.drawText(`${index + 1}.`, 56, y, {
-        color: COLORS.SAFETY_YELLOW,
+        color: COLORS.JAMSOFT_RED_LIGHT,
         font: FONTS.SMALL,
         shadow: false
       });
       lines.forEach((line, lineIndex) => {
         renderer.drawText(line, 76, y + lineIndex * 14, {
-          color: COLORS.UI_TEXT,
-          font: '10px "Courier New", monospace',
+          color: COLORS.JAMSOFT_WHITE,
+          font: FONTS.TINY,
           shadow: true
         });
       });
       y += Math.max(17, lines.length * 14 + 5);
     });
 
-    renderer.drawRect(56, y + 4, 528, 1, '#2f3b4a');
+    renderer.drawRect(56, y + 4, 528, 1, '#3a3a3a');
     y += 16;
 
     renderer.drawText('CONTROLES', 56, y, {
-      color: COLORS.SAFETY_YELLOW,
+      color: COLORS.JAMSOFT_RED_LIGHT,
       font: FONTS.TINY,
       shadow: false
     });
@@ -1127,7 +1177,7 @@ export class Game {
       const col = index < 4 ? 0 : 1;
       const row = index < 4 ? index : index - 4;
       renderer.drawText(control, 56 + col * 270, y + row * 17, {
-        color: COLORS.UI_TEXT_DIM,
+        color: COLORS.JAMSOFT_SMOKE,
         font: FONTS.TINY,
         shadow: false
       });
@@ -1136,11 +1186,11 @@ export class Game {
     y += 76;
 
     renderer.drawPanel(56, y, 528, 58, {
-      bg: 'rgba(26, 20, 8, 0.92)',
-      border: COLORS.SAFETY_YELLOW_DARK
+      bg: 'rgba(42, 7, 10, 0.92)',
+      border: COLORS.JAMSOFT_RED_DARK
     });
     renderer.drawText('DICA', 70, y + 10, {
-      color: COLORS.SAFETY_YELLOW,
+      color: COLORS.JAMSOFT_RED_LIGHT,
       font: FONTS.TINY,
       shadow: false
     });
@@ -1150,15 +1200,15 @@ export class Game {
     ).slice(0, 2);
     tipLines.forEach((line, index) => {
       renderer.drawText(line, 70, y + 26 + index * 14, {
-        color: COLORS.UI_TEXT,
-        font: '10px "Courier New", monospace',
+        color: COLORS.JAMSOFT_WHITE,
+        font: FONTS.TINY,
         shadow: true
       });
     });
 
     renderer.drawText(dialogs.helpFooter, 320, 404, {
-      color: COLORS.UI_TEXT_DIM,
-      font: '9px "Courier New", monospace',
+      color: COLORS.JAMSOFT_SMOKE,
+      font: FONTS.TINY,
       align: 'center',
       shadow: false
     });
@@ -1166,7 +1216,7 @@ export class Game {
     const blink = Math.sin(this._time * 5) > -0.2;
     if (blink) {
       renderer.drawText('ESPAÇO ou ESC para voltar', 320, 432, {
-        color: COLORS.SAFETY_YELLOW,
+        color: COLORS.JAMSOFT_WHITE,
         font: FONTS.PRIMARY,
         align: 'center',
         glow: true

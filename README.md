@@ -35,12 +35,13 @@ npm run smoke   # apenas o smoke test
 | `Espaço`, `Enter` ou `Z` | Interagir, avançar diálogo e confirmar |
 | `1` a `4` | Selecionar uma alternativa no desafio |
 | `M` | Abrir/fechar o Manual de NRs |
+| `I` | Abrir/fechar o Inventário (tempo, fases, EPIs e decoração) |
 | `F` | Alternar tela cheia |
 | `V` | Ligar/desligar o som |
 | `Esc` | Voltar/fechar painéis |
-| `↑` `↓` | Navegar no menu e nas opções |
+| `↑` `↓` | Navegar no menu, no inventário e nas opções |
 
-No manual: `←` `→` troca de NR, `Enter` abre o detalhe e `Esc` volta.
+No manual: `←` `→` troca de NR, `Enter` abre o detalhe e `Esc` volta. No inventário: `↑` `↓` escolhe, `Enter` equipa/remove a decoração ou abre o manual.
 
 ---
 
@@ -52,8 +53,9 @@ No manual: `←` `→` troca de NR, `Enter` abre o detalhe e `Esc` volta.
 4. Leia o diálogo, **responda ao desafio** de múltipla escolha e confira a explicação.
 5. Cada acerto **equipa um novo item no sprite** e **libera a porta de saída** na parede direita.
 6. **Atravesse a porta** para carregar a próxima sala e a próxima NR.
-7. Consulte o **Manual de NRs** (`M`) sempre que quiser.
-8. Atravesse a porta da **10ª fase** para receber o **Certificado de Segurança do Trabalho**.
+7. Abra o **Inventário** (`I`) para ver tempo jogado, fases concluídas, EPIs e equipar uma decoração.
+8. Consulte o **Manual de NRs** (`M`) sempre que quiser.
+9. Atravesse a porta da **10ª fase** para receber o **Certificado de Segurança do Trabalho**.
 
 Ao errar, o jogo mostra a resposta correta e uma **dica educativa**. Não há punição: o objetivo é aprender e tentar de novo.
 
@@ -80,12 +82,25 @@ O HUD segue a ordem “da cabeça aos pés”: capacete, óculos, protetor, más
 
 O manual (`M`) reúne **12 cartas**: as 10 NRs dos desafios e duas cartas extras de consulta (**NR-5** e **NR-7**). Cada carta tem resumo, principais regras, vínculo com o EPI da jornada e um aviso de que o conteúdo é educativo.
 
+### Inventário e decoração
+
+O inventário (`I`) funciona como uma pausa de consulta durante a exploração. Ele mostra **tempo jogado**, **fase atual**, **fases concluídas**, **EPIs adquiridos**, a lista completa dos 10 itens e uma prévia do personagem.
+
+Também há três itens cosméticos, que não alteram a proteção nem o conteúdo educativo:
+
+- **Pin JAMSOFT:** disponível desde o início;
+- **Adesivo de Capacete:** liberado junto com o capacete da NR-6;
+- **Faixa de Guardião:** liberada após cinco fases concluídas.
+
+Use `↑`/`↓` para escolher, `Enter` para equipar/remover e a última opção para abrir o Manual de NRs. A decoração escolhida e o tempo jogado ficam no save.
+
 ---
 
 ## Destaques técnicos
 
 - **Vanilla JavaScript + HTML5 Canvas**, sem frameworks e sem dependências.
-- Resolução fixa de **640×480**, com escala CSS responsiva e tela cheia.
+- Resolução lógica fixa de **640×480**, com **backing store 2x (1280×960)**, escala CSS responsiva e tela cheia. O resultado são textos e sprites mais nítidos sem perder a composição 4:3.
+- **Identidade JAMSOFT** no menu e na moldura: vermelho, preto e branco; painéis de leitura com alto contraste e fontes de alta legibilidade.
 - **10 fases lineares**, cada uma com uma sala temática de **20×15 tiles** (640×480), especialista, pôster de regras da NR e props próprios do risco.
 - **Porta de saída por fase**: bloqueada até o acerto, abre com sinalização verde e leva à próxima NR ao ser atravessada.
 - **Cenários temáticos**: almoxarifado de EPI, produção/máquinas, ruído, brigada, elétrica, sinalização, altura, logística, PGR e ergonomia.
@@ -94,11 +109,12 @@ O manual (`M`) reúne **12 cartas**: as 10 NRs dos desafios e duas cartas extras
 - **Retratos animados** em `PortraitRenderer.js`: rostos únicos por especialista, piscada periódica e boca em movimento durante a digitação do diálogo.
 - **Cenário em camadas** em `EnvironmentRenderer.js`: rodapés, soleiras, luzes de teto, porta de fase, poeira ambiente e props extras por setor.
 - **Camadas de equipamento** desenhadas sobre o personagem: capacete, óculos, protetor, máscara, luvas, colete, cinto, botas e prancheta; a cadeira aparece no cenário do escritório.
+- **Inventário (`I`)** com tempo, progresso, EPIs, prévia do personagem, três decorações cosméticas e atalho para o manual.
 - **Cache do cenário estático**: piso, paredes, luzes e rótulos são renderizados uma vez em um canvas auxiliar, mantendo a exploração fluida em 640×480.
 - Loop com `requestAnimationFrame`, colisão por eixos, diálogos com efeito de máquina de escrever e transições de estado.
 - **WebAudio** para efeitos sonoros procedurais, com mute persistente.
-- **`localStorage`** para progresso (`jamsoft_seguranca_save`) e som (`jamsoft_seguranca_mute`).
-- Testes sem navegador para dados, 10 fases, save, desafios, diálogo e manual (`scripts/smoke.mjs`).
+- **`localStorage`** para progresso (`jamsoft_seguranca_save`, versão **3.1**) e som (`jamsoft_seguranca_mute`). O save guarda fase, posição, EPIs, desafios, decoração e tempo jogado.
+- Testes sem navegador para dados, 10 fases, save, desafios, diálogo, manual, inventário e decoração (`scripts/smoke.mjs`).
 
 ---
 
@@ -107,7 +123,7 @@ O manual (`M`) reúne **12 cartas**: as 10 NRs dos desafios e duas cartas extras
 ```text
 .
 ├── index.html                 # entrada do jogo
-├── style.css                  # moldura, escala, tela cheia e acabamento CRT
+├── style.css                  # moldura JAMSOFT, escala e tela cheia
 ├── package.json
 ├── js/
 │   ├── main.js                # bootstrap
@@ -125,6 +141,7 @@ O manual (`M`) reúne **12 cartas**: as 10 NRs dos desafios e duas cartas extras
 │   │   ├── norms.js           # 12 cartas de NRs
 │   │   ├── npcs.js            # 10 especialistas e diálogos
 │   │   ├── challenges.js      # 10 desafios
+│   │   ├── decorations.js     # itens cosméticos e regras de liberação
 │   │   ├── maps.js            # tipos de tile, portas e mapa de referência
 │   │   ├── phaseMaps.js       # 10 fases lineares e decoração temática
 │   │   └── dialogs.js         # intro, ajuda e textos gerais
@@ -140,6 +157,7 @@ O manual (`M`) reúne **12 cartas**: as 10 NRs dos desafios e duas cartas extras
 │       ├── Dialog.js
 │       ├── Challenge.js
 │       ├── NormManual.js
+│       ├── Inventory.js         # inventário, estatísticas e decoração
 │       ├── EquipmentSystem.js
 │       ├── EquipmentRenderer.js
 │       ├── Certificate.js
@@ -161,15 +179,15 @@ O manual (`M`) reúne **12 cartas**: as 10 NRs dos desafios e duas cartas extras
 
 ## Status de validação
 
-- `npm test` verde: **30 arquivos JavaScript** + smoke test de dados, fases e lógica.
+- `npm test` verde: **32 arquivos JavaScript** + smoke test de dados, fases, lógica, inventário e decoração.
 - Fluxo principal validado em **Chromium/Edge**: menu, fases lineares, diálogo, desafio, porta liberada, próxima fase, manual, save/load e certificado.
-- Upgrade visual validado em **Chromium/Edge**: sprites, retratos animados, diálogo, cenário, HUD, manual e certificado; console sem erros.
-- Exploração medida em **~76 fps** no canvas 640×480 após o cache do cenário estático.
+- Upgrade visual e de leitura validado em **Chromium/Edge**: menu JAMSOFT, textos nítidos em 2x, inventário, diálogo, desafio, HUD, manual e certificado; console sem erros.
+- Exploração medida em **60 fps** com resolução lógica 640×480 e backing store 1280×960.
 - Progressão das 10 fases, porta de saída e certificado validadas por automação de estado.
-- Save **v3** registra a fase atual; saves antigos sem fase são migrados pela primeira NR pendente.
+- Save **v3.1** registra fase, decoração e tempo jogado; saves antigos sem fase são migrados pela primeira NR pendente e saves sem decoração usam o pin padrão.
 - **Pendente de validação manual:** tela cheia (`F`), Firefox/Safari, hardware definitivo da feira e revisão humana final das NRs.
 
-Detalhes e limitações: [qa/2026-10-27-v1.0-smoke.md](qa/2026-10-27-v1.0-smoke.md), [qa/2026-10-28-visual-upgrade.md](qa/2026-10-28-visual-upgrade.md) e [qa/2026-10-28-linear-phases.md](qa/2026-10-28-linear-phases.md).
+Detalhes e limitações: [qa/2026-10-27-v1.0-smoke.md](qa/2026-10-27-v1.0-smoke.md), [qa/2026-10-28-visual-upgrade.md](qa/2026-10-28-visual-upgrade.md), [qa/2026-10-28-linear-phases.md](qa/2026-10-28-linear-phases.md) e [qa/2026-10-28-ui-inventory.md](qa/2026-10-28-ui-inventory.md).
 
 ## Harness, agentes e sprints
 
@@ -199,9 +217,10 @@ Agentes:
 2. Deixe o som ligado (`V` mostra o estado).
 3. Comece um **NOVO JOGO** e leia a introdução.
 4. Faça o primeiro desafio com a Helena (NR-6), mostre o capacete entrando no sprite e **atravesse a porta verde** para a fase da NR-12.
-5. Abra o manual (`M`) para mostrar as cartas de NRs.
-6. Se quiser demonstrar o final, jogue até a 10ª porta ou use um save preparado.
-7. Ao terminar o certificado, o save é apagado automaticamente para o próximo visitante.
+5. Abra o inventário (`I`) e mostre tempo, progresso, EPIs e a decoração equipada.
+6. Abra o manual (`M`) para mostrar as cartas de NRs.
+7. Se quiser demonstrar o final, jogue até a 10ª porta ou use um save preparado.
+8. Ao terminar o certificado, o save é apagado automaticamente para o próximo visitante.
 
 Para **resetar** manualmente no navegador:
 

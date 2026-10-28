@@ -2,7 +2,7 @@ import { Entity } from './Entity.js';
 import { Collision } from '../engine/Collision.js';
 import { COLORS, FONTS } from '../design-tokens/snes-theme.js';
 import { drawOverlay } from './EquipmentRenderer.js';
-import { drawPlayerSprite } from './CharacterRenderer.js';
+import { drawPlayerSprite, drawPlayerDecoration } from './CharacterRenderer.js';
 
 /**
  * Jogador - colaborador da JAMSOFT que conquista EPIs ao longo da jornada.
@@ -30,10 +30,16 @@ export class Player extends Entity {
     this._flashTimer = 0;
     this._flashId = null;
     this._labelTimer = 0;
+    this._decoration = 'pin_jamsoft';
   }
 
   get direction() { return this._direction; }
   get equipment() { return this._equipment; }
+  get decoration() { return this._decoration; }
+
+  setDecoration(id) {
+    this._decoration = id || null;
+  }
 
   setEquipment(ids) {
     this._equipment = new Set(Array.isArray(ids) ? ids : []);
@@ -134,6 +140,8 @@ export class Player extends Entity {
       this._flashTimer > 0 ? this._flashTimer / 1.8 : 0
     );
 
+    drawPlayerDecoration(renderer, this, this._decoration, bounce);
+
     // Indicador de "VOCÊ" acima do sprite, com plaquinha para não sumir no cenário.
     const labelY = this._y - 27 + Math.sin(time * 3) * 1.5;
     renderer.drawRect(this._x + this._width / 2 - 20, labelY - 1, 40, 11, 'rgba(4, 9, 15, 0.70)');
@@ -164,7 +172,8 @@ export class Player extends Entity {
     return {
       x: this._x,
       y: this._y,
-      direction: this._direction
+      direction: this._direction,
+      decoration: this._decoration
     };
   }
 
@@ -173,5 +182,8 @@ export class Player extends Entity {
     this._x = data.x ?? this._x;
     this._y = data.y ?? this._y;
     this._direction = data.direction || 'down';
+    if (Object.prototype.hasOwnProperty.call(data, 'decoration')) {
+      this._decoration = data.decoration || null;
+    }
   }
 }

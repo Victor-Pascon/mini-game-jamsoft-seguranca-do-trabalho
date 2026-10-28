@@ -1,6 +1,6 @@
 # SPEC — JAMSOFT TECNOLOGIA: Segurança em Jogo
 
-**Versão:** 1.0  
+**Versão:** 1.1
 **Status:** implementado e validado para demonstração em feira  
 **Produto:** mini-game educativo de Segurança do Trabalho  
 **Plataforma:** navegador desktop, teclado, HTML5 Canvas  
@@ -39,7 +39,7 @@ O jogador explora uma sede em pixel art, conversa com especialistas, responde de
 1. **Aprender jogando:** texto curto, pergunta clara, feedback imediato.
 2. **Errar sem punição:** resposta errada mostra a correta e uma dica; o jogador tenta de novo.
 3. **Recompensa visível:** o EPI aparece no personagem, no HUD e no cenário.
-4. **Leitura confortável:** resolução 640×480 escalada, painéis com alto contraste e tipografia de pixel.
+4. **Leitura confortável:** resolução lógica 640×480 com renderização 2x, painéis de alto contraste e tipografia nítida.
 5. **Teclado apenas:** nenhum mouse necessário.
 6. **Conteúdo responsável:** resumos educativos com aviso para consultar a NR oficial e o SESMT.
 
@@ -55,6 +55,7 @@ O jogador explora uma sede em pixel art, conversa com especialistas, responde de
   - **COMO JOGAR:** abre um painel com missão, controles e dica.
 - Navegação por setas/WASD, confirmação por Espaço/Enter/Z.
 - Exibe indicador de save disponível e atalhos de tela cheia e som.
+- Identidade JAMSOFT em vermelho, preto e branco, com títulos em fonte de alta legibilidade.
 - Continua funcionando sem áudio ou `localStorage`.
 
 ### F2 — Exploração
@@ -71,7 +72,7 @@ O jogador explora uma sede em pixel art, conversa com especialistas, responde de
 - HUD superior com:
   - contador de proteção `n/10` e barra de progresso;
   - nome da sala atual, NR e indicador `FASE n/10`;
-  - lembretes de atalhos (`M`, `F`, `V`, movimento).
+  - lembretes de atalhos (`M`, `I`, `F`, `V`, movimento).
 - HUD inferior com:
   - contador de EPIs;
   - 10 slots na ordem da cabeça aos pés;
@@ -144,6 +145,20 @@ O jogador explora uma sede em pixel art, conversa com especialistas, responde de
 - Rodapé com fonte oficial e aviso educativo.
 - `Esc` volta; `M` fecha.
 
+### F6.1 — Inventário e decoração
+
+- Aberto por `I` durante a exploração e fechado por `I`, `Esc` ou `Backspace`.
+- Exibe quatro indicadores: tempo jogado, fase atual, fases concluídas e EPIs adquiridos.
+- Lista os 10 EPIs com ícone, nome e estado; itens ainda não conquistados aparecem bloqueados.
+- Oferece três itens cosméticos opcionais, sem efeito sobre a proteção ou o conteúdo educativo:
+  - **Pin JAMSOFT**, disponível desde o início;
+  - **Adesivo de Capacete**, liberado com o capacete;
+  - **Faixa de Guardião**, liberada após cinco fases.
+- `↑`/`↓` navega, `Enter` equipa/remove a decoração selecionada e a última opção abre o Manual de NRs (`M` também abre).
+- A prévia do personagem mostra EPIs e decoração equipados.
+- A decoração e o tempo jogado são persistidos no save.
+- Toda a leitura usa textos, não apenas cor, para indicar estado.
+
 ### F7 — Certificado
 
 - Acionado ao atravessar a porta liberada da 10ª fase, após conquistar o 10º item.
@@ -160,9 +175,9 @@ O jogador explora uma sede em pixel art, conversa com especialistas, responde de
 ### F8 — Save e carregamento
 
 - Persistência em `localStorage`, chave `jamsoft_seguranca_save`.
-- Conteúdo: versão, timestamp, posição do jogador, EPIs, desafios concluídos, **fase atual** e data legível.
-- Save é criado/atualizado a cada EPI conquistado e ao atravessar uma porta.
-- “CONTINUAR” restaura fase, posição, equipamentos e desafios.
+- Conteúdo: versão, timestamp, posição do jogador, decoração equipada, EPIs, desafios concluídos, **fase atual**, tempo jogado e data legível.
+- Save é criado/atualizado a cada EPI conquistado, ao atravessar uma porta e ao equipar/remover decoração.
+- “CONTINUAR” restaura fase, posição, equipamentos, decoração, desafios e tempo jogado.
 - Saves antigos sem fase são migrados para a primeira NR ainda pendente.
 - Save com os 10 itens abre diretamente no certificado.
 - Save inválido/indisponível não impede o jogo de iniciar.
@@ -179,7 +194,8 @@ O jogador explora uma sede em pixel art, conversa com especialistas, responde de
 
 - `F` alterna tela cheia quando a API é suportada.
 - A moldura CSS mantém proporção 4:3 e escala o canvas sem distorcer.
-- Estilo visual: pixel art SNES, paleta escura, detalhes em azul, amarelo e laranja, scanlines sutis e vinheta.
+- A resolução lógica continua 640×480; o backing store do canvas usa 2x (1280×960) para textos e sprites nítidos.
+- Estilo visual: pixel art SNES, moldura JAMSOFT em vermelho/preto/branco, paleta de segurança no jogo e vinheta suave. Não há scanlines sobre a HUD ou os painéis de leitura.
 - Nenhum asset externo de imagem ou áudio.
 
 ### F11 — Feedback e estados de interface
@@ -372,11 +388,12 @@ CERTIFICATE
 
 ```js
 {
-  version: '3.0',
+  version: '3.1',
   timestamp: 0,
   saveDate: '27/10/2026, 10:00:00',
   phase: 1,
-  player: { x: 308, y: 356, direction: 'down' },
+  playTime: 182.4,
+  player: { x: 308, y: 356, direction: 'down', decoration: 'pin_jamsoft' },
   equipment: ['capacete'],
   completedChallenges: ['challenge_nr6']
 }
@@ -389,6 +406,7 @@ CERTIFICATE
 - Todo NPC de desafio tem exatamente um item e um desafio correspondente.
 - Todo item de desafio tem uma NR no manual.
 - A ordem do HUD é a ordem de `equipmentList`.
+- `decoration` é `null` ou um ID válido de `decorations.js`.
 - Nenhum item é entregue duas vezes.
 - Salvar/carregar não pode deixar o jogador preso em parede ou estado inválido.
 
@@ -401,7 +419,7 @@ CERTIFICATE
 | RNF1 | Rodar em navegadores desktop modernos (Chrome/Edge, Firefox e Safari) sem build. |
 | RNF2 | Usar apenas HTML, CSS e JavaScript vanilla; nenhuma dependência de runtime. |
 | RNF3 | Não carregar imagens, fontes ou áudios externos; toda arte é procedural. |
-| RNF4 | Manter 60 fps no canvas 640×480 em hardware de feira; quedas devem ser investigadas. |
+| RNF4 | Manter 60 fps com resolução lógica 640×480 e backing store 1280×960 em hardware de feira; quedas devem ser investigadas. |
 | RNF5 | Ser totalmente jogável por teclado, sem mouse. |
 | RNF6 | Escalar para telas de 1280×720 ou maiores sem cortar conteúdo. |
 | RNF7 | Exibir contraste legível e não depender apenas de cor para status. |
@@ -435,6 +453,7 @@ CERTIFICATE
 | AC16 | O jogo não exibe erros no console no fluxo completo. |
 | AC17 | `npm test` passa com todos os arquivos JS e o smoke test. |
 | AC18 | O conteúdo do manual e dos desafios mantém o aviso educativo. |
+| AC19 | `I` abre o inventário com tempo, progresso, EPIs, decoração e acesso ao manual; equipar/remover decoração atualiza sprite e save. |
 
 ---
 
@@ -458,7 +477,7 @@ CERTIFICATE
 | Teclado do estande sem teclas ou layout diferente | Impossível jogar | Usar setas + WASD + Espaço; testar teclado no dia |
 | Navegador bloqueia áudio | Menos imersão | WebAudio com fallback silencioso; `V` visível |
 | Fullscreen bloqueado | Jogo menor | Escala CSS responsiva; `F` é opcional |
-| Texto pequeno no monitor | Leitura difícil | Canvas 640×480 escalado; fontes grandes nos painéis |
+| Texto pequeno no monitor | Leitura difícil | Canvas 640×480 com renderização 2x; fontes de alta legibilidade nos painéis |
 | Conteúdo desatualizado | Risco educativo | Revisão humana, fonte oficial e disclaimer |
 | Save de visitante anterior | Confusão | Certificado apaga save; reset documentado |
 | Loop/colisão travando | Sessão perdida | Recarregar página; save persiste |
@@ -474,7 +493,7 @@ Uma entrega só é considerada pronta quando:
 1. O comportamento está descrito em SPEC/PLAN e implementado.
 2. `npm test` passa.
 3. O fluxo afetado foi testado no navegador, sem erros no console.
-4. O visual mantém 640×480, paleta SNES e legibilidade.
+4. O visual mantém a resolução lógica 640×480, a paleta SNES/JAMSOFT e a legibilidade.
 5. Nenhum asset externo foi adicionado.
 6. O conteúdo educativo foi revisado e mantém o disclaimer.
 7. O save/load e o reset continuam funcionando.

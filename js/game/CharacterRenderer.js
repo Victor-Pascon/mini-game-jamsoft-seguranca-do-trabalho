@@ -587,6 +587,38 @@ export function drawPlayerSprite(renderer, x, y, options = {}) {
   });
 }
 
+/**
+ * Camada cosmética opcional, desenhada depois dos EPIs para continuar visível.
+ */
+export function drawPlayerDecoration(renderer, player, decoration, bounce = 0) {
+  if (!player || !decoration) return;
+
+  const x = Math.floor(player.x);
+  const top = Math.floor(player.y) + bounce - 6;
+
+  if (decoration === 'pin_jamsoft') {
+    rect(renderer, x + 7, top + 14, 3, 4, '#8f0f18');
+    rect(renderer, x + 8, top + 15, 2, 2, '#d71920');
+    rect(renderer, x + 8, top + 15, 1, 1, '#ffffff');
+    return;
+  }
+
+  if (decoration === 'adesivo_capacete') {
+    const hasHelmet = player.hasEquipment && player.hasEquipment('capacete');
+    if (!hasHelmet) return;
+    rect(renderer, x + 14, top, 5, 3, '#ffffff');
+    rect(renderer, x + 15, top + 1, 3, 1, '#d71920');
+    rect(renderer, x + 19, top + 1, 1, 2, '#d71920');
+    return;
+  }
+
+  if (decoration === 'faixa_guardiao') {
+    rect(renderer, x + 17, top + 13, 3, 10, '#8f0f18');
+    rect(renderer, x + 18, top + 13, 1, 8, '#ff3b4a');
+    rect(renderer, x + 17, top + 17, 3, 1, '#ffffff');
+  }
+}
+
 export function drawNpcSprite(renderer, npc, options = {}) {
   const x = Math.floor(npc.x) + 1;
   const top = Math.floor(npc.y) - 4;

@@ -4,7 +4,7 @@ export const dialogs = {
     'Hoje é o Dia da Segurança do Trabalho e a empresa preparou uma jornada para você.',
     'Sua missão: conversar com os especialistas, aprender as NRs e equipar o colaborador.',
     'Cada resposta correta adiciona um EPI ao personagem: capacete, óculos, luvas, cadeira ergonômica e mais.',
-    'Consulte o Manual de NRs a qualquer momento com a tecla M.',
+    'Consulte o Manual de NRs com a tecla M e abra o Inventário com I.',
     'Use WASD ou as setas para se mover e ESPAÇO para interagir.',
     'Ao conquistar os 10 itens, você recebe o certificado de Guardião da Segurança do Trabalho.'
   ],
@@ -22,7 +22,7 @@ export const dialogs = {
     'Aproxime-se de um especialista e pressione ESPAÇO para conversar.',
     'Leia a explicação da NR e responda ao desafio de múltipla escolha.',
     'Cada acerto equipa um novo item de proteção no sprite do jogador.',
-    'Use M para abrir o Manual de NRs e consultar as regras.',
+    'Use M para o Manual de NRs e I para o inventário.',
     'Conquiste os 10 itens para receber o certificado da feira.'
   ],
   helpControls: [
@@ -30,6 +30,7 @@ export const dialogs = {
     'ESPAÇO / ENTER: interagir e confirmar',
     '1 a 4: escolher resposta',
     'M: Manual de NRs',
+    'I: inventário e decoração',
     'F: tela cheia',
     'V: ligar/desligar som',
     'ESC: fechar painéis'

@@ -1,14 +1,24 @@
 /**
  * Design Tokens - JAMSOFT Segurança em Jogo
  * Estilo visual: Super Nintendo / Pixel Art
- * Paleta: JAMSOFT (azul + laranja) + cores de segurança do trabalho.
+ * Paleta: JAMSOFT (vermelho, preto e branco) + cores de segurança do trabalho.
  *
- * Regra: todo o jogo é desenhado em canvas, em uma resolução fixa de 640x480.
- * Os tokens abaixo mantêm a linguagem visual do mini-game original da JAMSOFT.
+ * Regra: todo o jogo é desenhado em um canvas com resolução lógica fixa de
+ * 640x480. O backing store usa 2x para manter textos e sprites nítidos em
+ * monitores de feira, sem alterar as coordenadas do jogo.
  */
 
 export const COLORS = {
   // Identidade JAMSOFT
+  JAMSOFT_RED: '#d71920',
+  JAMSOFT_RED_LIGHT: '#ff3b4a',
+  JAMSOFT_RED_DARK: '#8f0f18',
+  JAMSOFT_BLACK: '#050505',
+  JAMSOFT_CHARCOAL: '#141414',
+  JAMSOFT_WHITE: '#ffffff',
+  JAMSOFT_SMOKE: '#c7c7c7',
+
+  // Identidade original mantida para elementos de segurança
   PRIMARY: '#0d47a1',
   PRIMARY_LIGHT: '#1565c0',
   PRIMARY_DARK: '#0a3575',
@@ -101,14 +111,19 @@ export const COLORS = {
   GLOW_BLUE: 'rgba(21, 101, 192, 0.35)'
 };
 
+export const MONO_FONT_STACK = '"Consolas", "Lucida Console", "DejaVu Sans Mono", monospace';
+export const DISPLAY_FONT_STACK = '"Trebuchet MS", "Segoe UI", Arial, sans-serif';
+
 export const FONTS = {
-  TINY: '9px "Courier New", monospace',
-  SMALL: '11px "Courier New", monospace',
-  PRIMARY: '14px "Courier New", monospace',
-  DIALOG: '16px "Courier New", monospace',
-  LARGE: '20px "Courier New", monospace',
-  TITLE: '28px "Courier New", monospace',
-  HERO: '42px "Courier New", monospace'
+  TINY: `600 10px ${MONO_FONT_STACK}`,
+  SMALL: `600 12px ${MONO_FONT_STACK}`,
+  PRIMARY: `600 14px ${MONO_FONT_STACK}`,
+  DIALOG: `600 17px ${MONO_FONT_STACK}`,
+  LARGE: `700 20px ${MONO_FONT_STACK}`,
+  TITLE: `700 30px ${MONO_FONT_STACK}`,
+  HERO: `700 46px ${MONO_FONT_STACK}`,
+  DISPLAY: `700 34px ${DISPLAY_FONT_STACK}`,
+  MENU_TITLE: `700 48px ${DISPLAY_FONT_STACK}`
 };
 
 export const SPACING = {

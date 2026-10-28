@@ -30,19 +30,19 @@ function drawSeal(renderer, cx, cy, radius) {
 
   renderer.drawText('SESMT', cx, cy - 13, {
     color: COLORS.SAFETY_YELLOW,
-    font: '9px "Courier New", monospace',
+    font: '9px "Consolas", "Lucida Console", monospace',
     align: 'center',
     shadow: false
   });
   renderer.drawText('SEGURANÇA', cx, cy - 2, {
     color: '#ffffff',
-    font: '6px "Courier New", monospace',
+    font: '6px "Consolas", "Lucida Console", monospace',
     align: 'center',
     shadow: false
   });
   renderer.drawText('TRABALHO', cx, cy + 6, {
     color: '#ffffff',
-    font: '6px "Courier New", monospace',
+    font: '6px "Consolas", "Lucida Console", monospace',
     align: 'center',
     shadow: false
   });
@@ -163,7 +163,7 @@ export class Certificate {
 
     renderer.drawText('CERTIFICADO DE SEGURANÇA DO TRABALHO', 320, 66, {
       color: COLORS.SAFETY_YELLOW,
-      font: '18px "Courier New", monospace',
+      font: '18px "Consolas", "Lucida Console", monospace',
       align: 'center',
       glow: true
     });
@@ -180,7 +180,7 @@ export class Certificate {
 
     renderer.drawText('GUARDIÃO DA SEGURANÇA', 320, 128, {
       color: COLORS.SAFETY_ORANGE,
-      font: '30px "Courier New", monospace',
+      font: '30px "Consolas", "Lucida Console", monospace',
       align: 'center',
       glow: true
     });
@@ -240,7 +240,7 @@ export class Certificate {
     });
     renderer.drawText('Segurança e Saúde no Trabalho', 175, 376, {
       color: COLORS.UI_TEXT_DIM,
-      font: '8px "Courier New", monospace',
+      font: '8px "Consolas", "Lucida Console", monospace',
       align: 'center',
       shadow: false
     });
@@ -254,7 +254,7 @@ export class Certificate {
     });
     renderer.drawText('Feira de Segurança do Trabalho', 465, 376, {
       color: COLORS.UI_TEXT_DIM,
-      font: '8px "Courier New", monospace',
+      font: '8px "Consolas", "Lucida Console", monospace',
       align: 'center',
       shadow: false
     });
@@ -267,7 +267,7 @@ export class Certificate {
       406,
       {
         color: COLORS.UI_TEXT_DIM,
-        font: '8px "Courier New", monospace',
+        font: '8px "Consolas", "Lucida Console", monospace',
         align: 'center',
         shadow: false
       }

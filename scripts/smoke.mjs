@@ -13,6 +13,9 @@ import { EquipmentSystem } from '../js/game/EquipmentSystem.js';
 import { Challenge } from '../js/game/Challenge.js';
 import { Dialog } from '../js/game/Dialog.js';
 import { NormManual } from '../js/game/NormManual.js';
+import { Inventory } from '../js/game/Inventory.js';
+import { Player } from '../js/game/Player.js';
+import { decorativeItems, isDecorationUnlocked } from '../js/data/decorations.js';
 import { SaveSystem } from '../js/engine/SaveSystem.js';
 
 const failures = [];
@@ -290,6 +293,52 @@ manual.update(0.016, new FakeInput(['KeyM']));
 check(!manual.isOpen(), 'Manual fecha com M');
 
 // ---------------------------------------------------------------------------
+// Inventário e decoração
+// ---------------------------------------------------------------------------
+check(decorativeItems.length === 3, 'Existem 3 itens decorativos');
+check(
+  new Set(decorativeItems.map((item) => item.id)).size === decorativeItems.length,
+  'IDs de itens decorativos são únicos'
+);
+
+const invEquipment = new EquipmentSystem();
+const invPlayer = new Player({ x: 0, y: 0 });
+const inventory = new Inventory();
+inventory.open();
+check(inventory.isOpen(), 'Inventário abre');
+
+inventory.update(0.016, new FakeInput(['Enter']), { equipment: invEquipment, player: invPlayer });
+check(invPlayer.decoration === null, 'Decoração pode ser removida');
+check(inventory.consumeChanged(), 'Mudança de decoração solicita save');
+
+inventory.update(0.016, new FakeInput(['Enter']), { equipment: invEquipment, player: invPlayer });
+check(invPlayer.decoration === 'pin_jamsoft', 'Decoração pode ser equipada');
+
+inventory.update(0.016, new FakeInput(['ArrowDown']), { equipment: invEquipment, player: invPlayer });
+inventory.update(0.016, new FakeInput(['Enter']), { equipment: invEquipment, player: invPlayer });
+check(invPlayer.decoration === 'pin_jamsoft', 'Item decorativo bloqueado não equipa');
+
+invEquipment.unlock('capacete');
+check(
+  isDecorationUnlocked(decorativeItems[1], invEquipment),
+  'Adesivo de capacete libera com o capacete'
+);
+inventory.update(0.016, new FakeInput(['Enter']), { equipment: invEquipment, player: invPlayer });
+check(invPlayer.decoration === 'adesivo_capacete', 'Adesivo de capacete pode ser equipado');
+
+for (const item of equipmentList.slice(0, 5)) {
+  invEquipment.unlock(item.id);
+}
+inventory.update(0.016, new FakeInput(['ArrowDown']), { equipment: invEquipment, player: invPlayer });
+inventory.update(0.016, new FakeInput(['Enter']), { equipment: invEquipment, player: invPlayer });
+check(invPlayer.decoration === 'faixa_guardiao', 'Faixa de guardião libera após 5 fases');
+
+inventory.update(0.016, new FakeInput(['KeyM']), { equipment: invEquipment, player: invPlayer });
+check(inventory.consumeStudyRequest(), 'Inventário solicita material de estudo');
+inventory.update(0.016, new FakeInput(['KeyI']), { equipment: invEquipment, player: invPlayer });
+check(!inventory.isOpen(), 'Inventário fecha com I');
+
+// ---------------------------------------------------------------------------
 // Save da fase
 // ---------------------------------------------------------------------------
 const storage = new Map();
@@ -299,7 +348,9 @@ globalThis.localStorage = {
   removeItem: (key) => storage.delete(key)
 };
 const saveSystem = new SaveSystem();
-saveSystem.saveGame({ x: 308, y: 356 }, ['capacete'], ['challenge_nr6'], 1);
+const savePlayer = new Player({ x: 308, y: 356 });
+savePlayer.setDecoration(null);
+saveSystem.saveGame(savePlayer, ['capacete'], ['challenge_nr6'], 1, 42.5);
 const loadedSave = saveSystem.loadGame();
 check(loadedSave?.phase === 1, 'Save persiste a fase atual');
 check(loadedSave?.equipment?.includes('capacete'), 'Save persiste os EPIs da fase');
@@ -307,6 +358,8 @@ check(
   loadedSave?.completedChallenges?.includes('challenge_nr6'),
   'Save persiste os desafios concluídos'
 );
+check(loadedSave?.playTime === 42.5, 'Save persiste o tempo de jogo');
+check(loadedSave?.player?.decoration === null, 'Save persiste a decoração removida');
 delete globalThis.localStorage;
 
 // ---------------------------------------------------------------------------
