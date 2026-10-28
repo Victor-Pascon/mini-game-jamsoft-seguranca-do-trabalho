@@ -1,0 +1,316 @@
+# ============================================================================
+# JAMSOFT TECNOLOGIA — Segurança em Jogo
+# Harness documental do squad de desenvolvimento e operação da feira.
+#
+# Este arquivo descreve papéis, propriedade, qualidade e comandos.
+# Os prompts operacionais completos estão em ./agents/.
+# ============================================================================
+
+schema: safety-squad/v1
+name: safety-squad
+display_name: "Squad Segurança em Jogo"
+version: "1.0.0"
+project: "JAMSOFT TECNOLOGIA — Segurança em Jogo"
+repository_root: "."
+language: "pt-BR"
+
+description: >
+  Squad responsável por criar, revisar e operar um mini-game educativo de
+  Segurança do Trabalho para a feira da JAMSOFT TECNOLOGIA, cobrindo
+  Normas Regulamentadoras, EPIs, pixel art procedural e estabilidade em
+  demonstrações públicas.
+
+mission: >
+  Ensinar o vínculo entre NR, risco e proteção em uma sessão de 5 a 10
+  minutos, com exploração top-down, 10 desafios, 10 EPIs visíveis, manual
+  de 12 NRs e certificado final — sem dependências externas e sem mouse.
+
+success_metrics:
+  - "Visitante inicia sem ajuda em menos de 30 segundos."
+  - "Primeiro EPI visível no sprite em menos de 2 minutos."
+  - "Sessão completa sem erro de console e sem travar."
+  - "Conteúdo NR revisado por humano e com disclaimer visível."
+  - "npm test verde antes de cada release."
+
+cadence:
+  sprint_count: 6
+  sprint_blocks: "60–120 minutos de trabalho focado"
+  wip_limit_per_agent: 2
+  integration_reviewer: game-architect
+  release_gate: qa-fair-tester
+
+principles:
+  - "Conteúdo NR não é inventado; é revisado."
+  - "Toda arte e áudio são procedurais."
+  - "640×480 é a resolução fixa do canvas."
+  - "Teclado é o único dispositivo de entrada necessário."
+  - "Feedback de acerto, erro e progresso é sempre visível."
+  - "Um EPI é entregue uma única vez."
+  - "Save inválido não impede o jogo de abrir."
+  - "Nenhuma entrega sem npm test e smoke no navegador."
+
+agents:
+  - id: game-architect
+    code: A1
+    name: "Game Architect"
+    role: "Arquitetura, estados, integração e release"
+    prompt: "agents/game-architect.md"
+    owns:
+      - "js/game/Game.js"
+      - "js/game/State.js"
+      - "SPEC.md"
+      - "PLAN.md"
+    primary_sprints: [1, 5]
+    support_sprints: [2, 3, 4, 6]
+    outputs:
+      - "Contratos de estado e integração"
+      - "Fluxo completo jogável"
+      - "Release notes e handoff final"
+    can_block_release: true
+
+  - id: engine-developer
+    code: A2
+    name: "Engine Developer"
+    role: "Loop, input, renderer, colisão, save, som e performance"
+    prompt: "agents/engine-developer.md"
+    owns:
+      - "js/engine/"
+      - "js/game/Entity.js"
+      - "js/game/Player.js"
+      - "js/game/NPC.js"
+      - "js/game/Props.js"
+    primary_sprints: [2, 3, 4]
+    support_sprints: [1, 5, 6]
+    outputs:
+      - "Engine estável e testável"
+      - "Movimento, colisão e save tolerantes a falhas"
+      - "Áudio e fullscreen com fallback"
+    can_block_release: true
+
+  - id: nr-content-curator
+    code: A3
+    name: "NR Content Curator"
+    role: "Precisão das NRs, desafios, diálogos e tom educativo"
+    prompt: "agents/nr-content-curator.md"
+    owns:
+      - "js/data/norms.js"
+      - "js/data/challenges.js"
+      - "js/data/dialogs.js"
+      - "js/data/equipment.js"
+      - "js/data/npcs.js"
+    primary_sprints: [1, 4, 6]
+    support_sprints: [2, 3, 5]
+    outputs:
+      - "12 cartas de NR revisadas"
+      - "10 desafios inequívocos"
+      - "Diálogos claros e responsáveis"
+    can_block_release: true
+
+  - id: pixel-ux-designer
+    code: A4
+    name: "Pixel/UX Designer"
+    role: "Identidade SNES, sprite, EPIs procedurais, HUD e acessibilidade"
+    prompt: "agents/pixel-ux-designer.md"
+    owns:
+      - "js/design-tokens/snes-theme.js"
+      - "js/game/EquipmentRenderer.js"
+      - "js/game/NormManual.js"
+      - "js/game/Certificate.js"
+      - "js/game/Dialog.js"
+      - "js/game/Challenge.js"
+      - "style.css"
+    primary_sprints: [3, 4, 5]
+    support_sprints: [1, 2, 6]
+    outputs:
+      - "Sprite e EPIs legíveis"
+      - "HUD e painéis em 640×480"
+      - "Contraste, hierarquia e feedback visual"
+    can_block_release: true
+
+  - id: qa-fair-tester
+    code: A5
+    name: "QA & Fair Tester"
+    role: "Testes, navegador, conteúdo, acessibilidade e operação da feira"
+    prompt: "agents/qa-fair-tester.md"
+    owns:
+      - "scripts/check.mjs"
+      - "scripts/smoke.mjs"
+      - "HARNESS_CHECKLIST.md"
+      - "qa/"
+    primary_sprints: [2, 6]
+    support_sprints: [1, 3, 4, 5]
+    outputs:
+      - "npm test verde"
+      - "Relatório de QA por sprint"
+      - "Checklist de feira e plano de incidente"
+    can_block_release: true
+
+ownership:
+  integration_review: "game-architect"
+  content_approval: "nr-content-curator"
+  visual_approval: "pixel-ux-designer"
+  release_approval: "qa-fair-tester"
+  shared_files:
+    - "README.md"
+    - "index.html"
+    - "package.json"
+  conflict_rules:
+    - "Mudanças em Game.js exigem revisão de A1."
+    - "Mudanças em texto de NR exigem aprovação de A3."
+    - "Mudanças de sprite/HUD exigem revisão de A4."
+    - "Mudanças em smoke test exigem justificativa de A5."
+
+sprint_plan:
+  total_points: 104
+  sprints:
+    - id: 1
+      name: "Harness & Discovery"
+      points: 12
+      goal: "Escopo, contratos, scaffold, mapa de conteúdo e plano de testes."
+      owners: [game-architect, nr-content-curator]
+      exit_criteria:
+        - "10 NRs, 10 EPIs e 12 cartas mapeados."
+        - "npm run check executa."
+        - "Documentos-base aprovados."
+    - id: 2
+      name: "Engine Core"
+      points: 16
+      goal: "Loop, input, renderer, colisão, save, som e testes de base."
+      owners: [engine-developer, qa-fair-tester]
+      exit_criteria:
+        - "Movimento e colisão funcionam."
+        - "Save/áudio tolerantes a falhas."
+        - "npm test verde."
+    - id: 3
+      name: "World & Characters"
+      points: 20
+      goal: "Mapa de 12 salas, props, player, NPCs e HUD."
+      owners: [pixel-ux-designer, engine-developer]
+      exit_criteria:
+        - "12 salas navegáveis."
+        - "10 NPCs posicionados."
+        - "HUD e labels legíveis."
+    - id: 4
+      name: "Challenges & Equipment"
+      points: 24
+      goal: "Diálogos, 10 desafios, 10 EPIs, 12 cartas e manual."
+      owners: [nr-content-curator, pixel-ux-designer, engine-developer]
+      exit_criteria:
+        - "10 desafios completos."
+        - "10 EPIs visíveis."
+        - "Manual com 12 cartas."
+    - id: 5
+      name: "Progression & Certificate"
+      points: 16
+      goal: "Save/load, certificado, menu, áudio, fullscreen e reset."
+      owners: [game-architect, pixel-ux-designer]
+      exit_criteria:
+        - "Save parcial e completo funcionam."
+        - "Certificado fecha a jornada."
+        - "Reset pós-certificado funciona."
+    - id: 6
+      name: "QA & Fair Polish"
+      points: 16
+      goal: "QA completo, acessibilidade, conteúdo, performance e feira."
+      owners: [qa-fair-tester, nr-content-curator]
+      exit_criteria:
+        - "Fluxo completo validado no navegador."
+        - "Nenhum bug S1/S2 aberto."
+        - "Checklist de feira preenchido."
+
+workload:
+  # Pontos por agente em cada sprint; totais em AGENTS.md e PLAN.md.
+  game-architect: [5, 2, 2, 2, 5, 2]
+  engine-developer: [2, 6, 5, 5, 3, 2]
+  nr-content-curator: [3, 2, 3, 6, 3, 4]
+  pixel-ux-designer: [1, 2, 7, 6, 3, 2]
+  qa-fair-tester: [1, 4, 3, 5, 2, 6]
+  sprint_totals: [12, 16, 20, 24, 16, 16]
+
+quality_gates:
+  - id: G0
+    name: "Escopo"
+    owner: game-architect
+    criteria: "SPEC/PLAN atualizados e aceite claro."
+  - id: G1
+    name: "Conteúdo"
+    owner: nr-content-curator
+    criteria: "NR revisada, resposta inequívoca, disclaimer presente."
+  - id: G2
+    name: "Visual"
+    owner: pixel-ux-designer
+    criteria: "640×480, legível, sprite/EPIs coerentes."
+  - id: G3
+    name: "Técnico"
+    owner: engine-developer
+    criteria: "npm test, sem erro de console, save/áudio tolerantes."
+  - id: G4
+    name: "QA"
+    owner: qa-fair-tester
+    criteria: "Fluxo completo, checklist, bugs S1/S2 zerados."
+  - id: G5
+    name: "Release"
+    owner: game-architect
+    criteria: "Docs, handoff, riscos e roteiro de feira prontos."
+
+commands:
+  - id: start
+    description: "Servidor local do jogo"
+    run: "npm start"
+    expected: "http://localhost:8000"
+  - id: check
+    description: "Verificação de sintaxe"
+    run: "npm run check"
+    expected: "Todos os arquivos JS sem erro."
+  - id: smoke
+    description: "Testes de dados e lógica"
+    run: "npm run smoke"
+    expected: "Smoke test concluído com sucesso."
+  - id: test
+    description: "Gate técnico completo"
+    run: "npm test"
+    expected: "Check + smoke verdes."
+  - id: quality-gate
+    description: "Roteiro completo de QA"
+    file: "commands/run-quality-gate.md"
+  - id: fair-demo
+    description: "Roteiro de demonstração e operação"
+    file: "commands/fair-demo.md"
+
+skills:
+  - id: nr-content-review
+    description: "Revisão editorial e técnica de conteúdo de NR"
+    file: "skills/nr-content-review.md"
+
+handoff:
+  template: |
+    ## Handoff — <tarefa>
+    **Agente:** A?
+    **Sprint:** S?
+    **Objetivo:** ...
+    **Arquivos alterados:** ...
+    **Comportamento entregue:** ...
+    **Testes executados:** ...
+    **Evidências:** ...
+    **Riscos / pendências:** ...
+    **Próximo dono:** A?
+  required_fields:
+    - "objetivo"
+    - "arquivos_alterados"
+    - "comportamento"
+    - "testes"
+    - "riscos"
+    - "proximo_dono"
+
+escalation:
+  content_conflict: "nr-content-curator"
+  architecture_conflict: "game-architect"
+  release_block: "qa-fair-tester"
+  priority_order: ["S1", "S2", "S3", "S4"]
+
+references:
+  spec: "../../SPEC.md"
+  plan: "../../PLAN.md"
+  agents: "../../AGENTS.md"
+  checklist: "../../HARNESS_CHECKLIST.md"
+  readme: "../../README.md"

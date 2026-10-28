@@ -1,0 +1,26 @@
+{
+  "name": "jamsoft-seguranca-em-jogo",
+  "version": "1.0.0",
+  "private": true,
+  "type": "module",
+  "description": "Mini-game educativo da JAMSOFT TECNOLOGIA sobre Segurança do Trabalho e Normas Regulamentadoras.",
+  "author": "JAMSOFT TECNOLOGIA",
+  "engines": {
+    "node": ">=18"
+  },
+  "scripts": {
+    "start": "node scripts/serve.mjs",
+    "check": "node scripts/check.mjs",
+    "smoke": "node scripts/smoke.mjs",
+    "test": "npm run check && npm run smoke"
+  },
+  "keywords": [
+    "jamsoft",
+    "seguranca-do-trabalho",
+    "nr",
+    "epi",
+    "canvas",
+    "game"
+  ],
+  "license": "UNLICENSED"
+}
