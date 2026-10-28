@@ -8,17 +8,18 @@
 
 ## 0. Status desta versão
 
-- **Versão:** 1.3
+- **Versão:** 1.4
 - **Data de referência:** 28/10/2026
 - **Ambiente de validação:** navegador Chromium/Edge em desktop, servidor local `npm start`, controle Xbox simulado via Gamepad API.
-- **Registro detalhado:** [qa/2026-10-28-gamepad-xbox.md](qa/2026-10-28-gamepad-xbox.md), [qa/2026-10-28-ui-inventory.md](qa/2026-10-28-ui-inventory.md), [qa/2026-10-28-linear-phases.md](qa/2026-10-28-linear-phases.md) e [qa/2026-10-27-v1.0-smoke.md](qa/2026-10-27-v1.0-smoke.md) (histórico).
+- **Registro detalhado:** [qa/2026-10-28-phase-decoration-workers.md](qa/2026-10-28-phase-decoration-workers.md), [qa/2026-10-28-gamepad-xbox.md](qa/2026-10-28-gamepad-xbox.md), [qa/2026-10-28-ui-inventory.md](qa/2026-10-28-ui-inventory.md), [qa/2026-10-28-linear-phases.md](qa/2026-10-28-linear-phases.md) e [qa/2026-10-27-v1.0-smoke.md](qa/2026-10-27-v1.0-smoke.md) (histórico).
 
 | Verificação | Status | Observação |
 | --- | --- | --- |
-| `npm test` | ✅ Passou | Sintaxe dos 34 JS + smoke test de dados, fases, inventário, controle e pausa |
+| `npm test` | ✅ Passou | Sintaxe dos 35 JS + smoke test de dados, fases, funcionários, inventário, controle e pausa |
 | Menu e legibilidade | ✅ Validado | Identidade JAMSOFT em vermelho/preto/branco e textos nítidos com backing store 2x |
 | Fluxo de desafio e EPI | ✅ Validado | Helena/NR-6, incluindo erro, dica, acerto e capacete |
 | Fluxo completo das 10 fases | ✅ Validado | Playthrough automatizado: desafio → porta → próxima sala → certificado |
+| Decoração e funcionários | ✅ Validado | 10 salas com faixa de piso/parede, posto de trabalho e 2 funcionários com EPIs da NR |
 | Porta de fase | ✅ Validado | Bloqueada sem EPI; libera após o acerto e carrega a próxima NR |
 | Manual de NRs | ✅ Validado | Lista, página, detalhe e fechamento |
 | Inventário e decoração | ✅ Validado | `I`, estatísticas, prévia, equipar/remover pin, adesivo e faixa |
@@ -129,6 +130,9 @@ npm start
 - [ ] Introdução inicial explica missão e controles.
 - [ ] Os 10 NPCs aparecem em suas fases lineares corretas.
 - [ ] Cada fase exibe pôster da NR e props temáticos.
+- [ ] Cada fase tem dois funcionários visíveis, com tarefa e EPIs representativos da NR.
+- [ ] Funcionários e rótulos não invadem pôster, porta, especialista ou início do jogador.
+- [ ] Faixa de parede, cantos de piso, marca d'água da NR e posto de trabalho aparecem sem poluir a leitura.
 - [ ] O prompt aparece na distância correta.
 - [ ] Cada diálogo termina em desafio ou em conversa de reforço.
 - [ ] Resposta errada mostra a correta e a dica.
@@ -254,7 +258,7 @@ Executar em uma janela anônima, com `localStorage` limpo.
 - [ ] 3. Iniciar NOVO JOGO; concluir a introdução com Espaço.
 - [ ] 4. Mover com WASD/setas; verificar colisão.
 - [ ] 5. Conversar com Helena; errar; ver dica; voltar; acertar.
-- [ ] 6. Ver o capacete no sprite e no HUD; conferir a porta verde e atravessar para a Fase 2.
+- [ ] 6. Ver o capacete no sprite e no HUD; conferir os dois funcionários da sala (EPI, tarefa e posto) e a porta verde; atravessar para a Fase 2.
 - [ ] 7. Abrir o manual (`M`); navegar, abrir detalhe e voltar.
 - [ ] 8. Abrir o inventário (`I`); conferir estatísticas, equipar/remover decoração e abrir o manual pela opção de estudo; voltar.
 - [ ] 9. Recarregar; usar CONTINUAR; conferir fase, progresso, posição, decoração e tempo.

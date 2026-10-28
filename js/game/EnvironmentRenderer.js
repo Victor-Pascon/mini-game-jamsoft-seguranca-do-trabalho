@@ -112,6 +112,79 @@ function drawRoomBorders(renderer, map) {
   }
 }
 
+function drawWorkerZone(renderer, worker, roomColor) {
+  const x = Math.round(worker.x - 8);
+  const y = Math.round(worker.y + 24);
+  const width = 40;
+  const height = 9;
+  const line = hexToRgba(roomColor, 0.34);
+  const fill = hexToRgba(roomColor, 0.11);
+
+  renderer.drawGlow(worker.x + 12, worker.y + 22, 26, roomColor, 0.045);
+  renderer.drawRect(x, y, width, height, fill);
+  renderer.drawRect(x, y, width, 1, line);
+  renderer.drawRect(x, y + height - 1, width, 1, line);
+
+  // Cantos amarelos deixam o posto de trabalho legível mesmo em salas claras.
+  renderer.drawRect(x, y, 5, 1, hexToRgba(COLORS.SAFETY_YELLOW, 0.62));
+  renderer.drawRect(x + width - 5, y, 5, 1, hexToRgba(COLORS.SAFETY_YELLOW, 0.62));
+  renderer.drawRect(x, y + height - 1, 5, 1, hexToRgba(COLORS.SAFETY_YELLOW, 0.42));
+  renderer.drawRect(x + width - 5, y + height - 1, 5, 1, hexToRgba(COLORS.SAFETY_YELLOW, 0.42));
+}
+
+function drawPhaseAmbience(renderer, map) {
+  if (!map.phase || !Array.isArray(map.roomDefs)) return;
+
+  for (const room of map.roomDefs) {
+    const ts = map.tileSize;
+    const x0 = room.x * ts;
+    const y0 = room.y * ts;
+    const width = room.w * ts;
+    const height = room.h * ts;
+    const color = room.color || COLORS.SAFETY_YELLOW;
+
+    // Faixa de identificação na parede superior, abaixo do HUD.
+    renderer.drawRect(x0 + 8, y0 + 2, width - 16, 2, hexToRgba(color, 0.32));
+    renderer.drawRect(x0 + 8, y0 + 4, width - 16, 1, 'rgba(255, 255, 255, 0.08)');
+
+    // Rodapé com marcações alternadas, lembrando uma faixa de segurança.
+    for (let x = x0 + 12; x < x0 + width - 12; x += 18) {
+      renderer.drawRect(x, y0 + height - 7, 9, 1, hexToRgba(color, 0.22));
+      renderer.drawRect(x + 9, y0 + height - 7, 3, 1, 'rgba(0, 0, 0, 0.18)');
+    }
+
+    // Cantos pintados no piso, alinhando a área de circulação.
+    const corner = 14;
+    const cornerLine = hexToRgba(color, 0.26);
+    renderer.drawRect(x0 + 12, y0 + 16, corner, 2, cornerLine);
+    renderer.drawRect(x0 + 12, y0 + 16, 2, corner, cornerLine);
+    renderer.drawRect(x0 + width - 12 - corner, y0 + 16, corner, 2, cornerLine);
+    renderer.drawRect(x0 + width - 14, y0 + 16, 2, corner, cornerLine);
+    renderer.drawRect(x0 + 12, y0 + height - 16, corner, 2, cornerLine);
+    renderer.drawRect(x0 + 12, y0 + height - 16 - corner, 2, corner, cornerLine);
+    renderer.drawRect(x0 + width - 12 - corner, y0 + height - 16, corner, 2, cornerLine);
+    renderer.drawRect(x0 + width - 14, y0 + height - 16 - corner, 2, corner, cornerLine);
+
+    // Grande marca d'água com a NR da fase. Fica no piso, atrás dos atores.
+    const stampX = x0 + width / 2;
+    const stampY = y0 + height - 118;
+    renderer.drawGlow(stampX, stampY + 14, 92, color, 0.035);
+    renderer.drawText(String(room.norm || ''), stampX, stampY, {
+      color: hexToRgba(color, 0.13),
+      font: '800 30px "Consolas", "Lucida Console", monospace',
+      align: 'center',
+      shadow: false
+    });
+    renderer.drawRect(stampX - 52, stampY + 32, 104, 1, hexToRgba(color, 0.16));
+    renderer.drawRect(stampX - 32, stampY + 35, 64, 1, hexToRgba(color, 0.10));
+
+    // Postos de trabalho visíveis sob cada funcionário.
+    for (const worker of map.workers || []) {
+      drawWorkerZone(renderer, worker, color);
+    }
+  }
+}
+
 function drawDoorGuides(renderer, map) {
   const ts = map.tileSize;
 
@@ -220,6 +293,8 @@ export function drawMapDetails(renderer, map, time = 0, options = {}) {
   if (!map.phase) {
     drawDoorGuides(renderer, map);
     drawHallLane(renderer);
+  } else {
+    drawPhaseAmbience(renderer, map);
   }
   drawCeilingLights(renderer, map);
   if (options.dust !== false) drawDust(renderer, time);

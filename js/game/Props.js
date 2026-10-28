@@ -98,7 +98,14 @@ export function drawProp(renderer, prop, equipmentSystem = null, options = {}) {
     }
 
     case 'chair': {
-      drawChair(renderer, x, y, Boolean(equipmentSystem?.has('cadeira')), w, h);
+      drawChair(
+        renderer,
+        x,
+        y,
+        Boolean(prop.ergonomic || equipmentSystem?.has('cadeira')),
+        w,
+        h
+      );
       break;
     }
 

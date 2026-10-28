@@ -204,6 +204,34 @@ for (let index = 0; index < PHASES.length; index++) {
     );
   }
 
+  check(
+    Array.isArray(map.workers) && map.workers.length >= 2,
+    `${phase.id} tem uma equipe trabalhando no setor`
+  );
+  check(
+    new Set((map.workers || []).map((worker) => worker.id)).size === (map.workers || []).length,
+    `${phase.id} tem IDs de funcionários únicos`
+  );
+  check(
+    (map.workers || []).some((worker) => worker.equipment.includes(phase.equipmentId)),
+    `${phase.id} mostra o EPI da fase em um funcionário`
+  );
+
+  for (const worker of map.workers || []) {
+    check(
+      worker.x - 3 >= 0 &&
+        worker.y - 9 >= 0 &&
+        worker.x + 36 <= 640 &&
+        worker.y + 33 <= 480,
+      `${phase.id}: funcionário ${worker.id} está dentro do canvas`
+    );
+    check(Boolean(worker.task), `${phase.id}: funcionário ${worker.id} tem tarefa visível`);
+    check(
+      (worker.equipment || []).every((id) => Boolean(EQUIPMENT_BY_ID[id])),
+      `${phase.id}: funcionário ${worker.id} usa apenas EPIs conhecidos`
+    );
+  }
+
   const reservedZones = [
     { name: 'pôster de regras', x: 180, y: 84, w: 280, h: 88 },
     { name: 'moldura e placa da porta', x: map.exit.x - 28, y: map.exit.y - 34, w: map.exit.w + 60, h: map.exit.h + 42 },
@@ -227,6 +255,25 @@ for (let index = 0; index < PHASES.length; index++) {
     layoutViolations.length === 0,
     `${phase.id} mantém pôster, porta, especialista e início do jogador livres${
       layoutViolations.length ? `: ${layoutViolations.join('; ')}` : ''
+    }`
+  );
+
+  const workerViolations = [];
+  for (const worker of map.workers || []) {
+    const bounds = { x: worker.x - 3, y: worker.y - 9, w: 39, h: 42 };
+    for (const zone of reservedZones) {
+      const overlaps =
+        bounds.x < zone.x + zone.w &&
+        bounds.x + bounds.w > zone.x &&
+        bounds.y < zone.y + zone.h &&
+        bounds.y + bounds.h > zone.y;
+      if (overlaps) workerViolations.push(`${worker.id} invade ${zone.name}`);
+    }
+  }
+  check(
+    workerViolations.length === 0,
+    `${phase.id} posiciona funcionários fora das áreas reservadas${
+      workerViolations.length ? `: ${workerViolations.join('; ')}` : ''
     }`
   );
 }

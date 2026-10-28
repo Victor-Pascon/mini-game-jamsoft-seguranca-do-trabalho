@@ -231,6 +231,95 @@ const MURAL_LOOK = {
   badge: '#ffffff'
 };
 
+/**
+ * Funcionários de cenário. São variações discretas de uniforme, cabelo e tom
+ * de pele para que cada sala pareça um setor realmente ocupado, sem competir
+ * com os especialistas que conduzem os desafios.
+ */
+const WORKER_LOOKS = {
+  warehouse: {
+    skin: '#d99a6c',
+    skinLight: '#f5c089',
+    skinShade: '#a96a3d',
+    hair: '#38251a',
+    hairLight: '#5a3a26',
+    hairShade: '#1f120a',
+    hairStyle: 'short',
+    uniform: '#ff8f00',
+    pants: '#263238',
+    shoes: '#1a1a1a',
+    vest: true,
+    badge: '#ffffff'
+  },
+  industrial: {
+    skin: '#a86b43',
+    skinLight: '#cf9163',
+    skinShade: '#78472a',
+    hair: '#1f1712',
+    hairLight: '#3b2c22',
+    hairShade: '#0f0906',
+    hairStyle: 'buzz',
+    uniform: '#1565c0',
+    pants: '#263238',
+    shoes: '#151719',
+    badge: '#ffffff'
+  },
+  technical: {
+    skin: '#f0c49a',
+    skinLight: '#ffdcb2',
+    skinShade: '#c58c61',
+    hair: '#3a2418',
+    hairLight: '#5d3a26',
+    hairShade: '#21130c',
+    hairStyle: 'bob',
+    uniform: '#26a69a',
+    pants: '#1c2a31',
+    shoes: '#151719',
+    badge: '#ffffff'
+  },
+  fire: {
+    skin: '#c6865a',
+    skinLight: '#eab088',
+    skinShade: '#945a35',
+    hair: '#2b1b12',
+    hairLight: '#4d3121',
+    hairShade: '#160c07',
+    hairStyle: 'short',
+    uniform: '#b71c1c',
+    pants: '#263238',
+    shoes: '#151719',
+    vest: true,
+    badge: '#ffffff'
+  },
+  office: {
+    skin: '#e6b18a',
+    skinLight: '#ffd3ad',
+    skinShade: '#b87d56',
+    hair: '#3a2416',
+    hairLight: '#60402a',
+    hairShade: '#20120a',
+    hairStyle: 'bun',
+    uniform: '#90caf9',
+    pants: '#263238',
+    shoes: '#151719',
+    badge: '#ffffff'
+  },
+  logistics: {
+    skin: '#8d5524',
+    skinLight: '#b87a45',
+    skinShade: '#633610',
+    hair: '#16110e',
+    hairLight: '#33261f',
+    hairShade: '#080504',
+    hairStyle: 'short',
+    uniform: '#8d6e63',
+    pants: '#2d3137',
+    shoes: '#151719',
+    vest: true,
+    badge: '#ffffff'
+  }
+};
+
 const FALLBACK_LOOKS = [
   NPC_LOOKS.npc_epi,
   NPC_LOOKS.npc_pgr,
@@ -585,6 +674,40 @@ export function drawPlayerSprite(renderer, x, y, options = {}) {
     time,
     blink
   });
+}
+
+export function getWorkerLook(worker = {}) {
+  const base = WORKER_LOOKS[worker.look] || WORKER_LOOKS.industrial;
+  return completeLook({
+    ...base,
+    uniform: worker.uniform || base.uniform
+  });
+}
+
+/**
+ * Sprite de funcionário em atividade. Usa a mesma base do jogador/NPC para
+ * manter a linguagem visual, mas com um pequeno atraso de respiração por
+ * posição para que os trabalhadores não pisquem em sincronia.
+ */
+export function drawWorkerSprite(renderer, worker, options = {}) {
+  if (!worker) return getWorkerLook();
+
+  const x = Math.floor(worker.x);
+  const top = Math.floor(worker.y) - 6;
+  const look = getWorkerLook(worker);
+  const offset = Math.abs(worker.x * 0.031 + worker.y * 0.017);
+  const time = (options.time || 0) + offset;
+  const blink = (time % 5.3) > 5.12;
+
+  drawHumanoid(renderer, x, top, look, {
+    direction: worker.direction || 'down',
+    moving: false,
+    frame: 0,
+    time,
+    blink
+  });
+
+  return look;
 }
 
 /**

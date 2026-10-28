@@ -224,12 +224,283 @@ const DECOR = {
     { id: 'ergonomia_desk', type: 'desk', x: 40, y: 84, w: 140, h: 20, color: '#5d4037' },
     { id: 'ergonomia_monitor', type: 'monitor', x: 80, y: 70, w: 28, h: 18 },
     { id: 'ergonomia_printer', type: 'printer', x: 40, y: 112, w: 28, h: 20 },
-    { id: 'ergonomia_chair', type: 'chair', x: 60, y: 120, w: 24, h: 30 },
+    { id: 'ergonomia_chair', type: 'chair', x: 60, y: 120, w: 24, h: 30, ergonomic: true },
     { id: 'ergonomia_cabinet', type: 'cabinet', x: 520, y: 84, w: 56, h: 60, color: '#90a4ae' },
     { id: 'ergonomia_water', type: 'watercooler', x: 520, y: 154, w: 24, h: 36 },
     { id: 'ergonomia_plant_a', type: 'plant', x: 520, y: 300, w: 18, h: 24 },
     { id: 'ergonomia_plant_b', type: 'plant', x: 40, y: 300, w: 18, h: 24 },
     { id: 'ergonomia_sign', type: 'sign', x: 480, y: 310, w: 20, h: 20, color: '#ffc107' }
+  ]
+};
+
+/**
+ * Funcionários de cada setor.
+ *
+ * Eles ocupam as laterais livres da sala, usam os EPIs representativos da NR
+ * da fase e executam uma tarefa visual (medir ruído, operar máquina, conferir
+ * carga...). A posição é estável para não competir com o pôster, o
+ * especialista, a porta ou o ponto de partida do jogador.
+ */
+const WORKERS = {
+  epi: [
+    {
+      id: 'epi_worker_a',
+      x: 120,
+      y: 240,
+      direction: 'right',
+      look: 'warehouse',
+      uniform: '#ff8f00',
+      equipment: ['capacete', 'luvas', 'colete'],
+      tool: 'scanner',
+      effect: 'scan',
+      task: 'SEPARA EPI'
+    },
+    {
+      id: 'epi_worker_b',
+      x: 500,
+      y: 240,
+      direction: 'left',
+      look: 'technical',
+      uniform: '#26a69a',
+      equipment: ['oculos', 'luvas', 'botas'],
+      tool: 'box',
+      effect: 'dust',
+      task: 'ESTOQUE'
+    }
+  ],
+  maquinas: [
+    {
+      id: 'maquinas_worker_a',
+      x: 120,
+      y: 240,
+      direction: 'right',
+      look: 'industrial',
+      uniform: '#1565c0',
+      equipment: ['oculos', 'luvas', 'botas'],
+      tool: 'wrench',
+      effect: 'spark',
+      task: 'OPERANDO'
+    },
+    {
+      id: 'maquinas_worker_b',
+      x: 500,
+      y: 240,
+      direction: 'left',
+      look: 'logistics',
+      uniform: '#8d6e63',
+      equipment: ['capacete', 'colete'],
+      tool: 'meter',
+      effect: 'signal',
+      task: 'INSPEÇÃO'
+    }
+  ],
+  ruido: [
+    {
+      id: 'ruido_worker_a',
+      x: 120,
+      y: 240,
+      direction: 'right',
+      look: 'technical',
+      uniform: '#26a69a',
+      equipment: ['protetor', 'capacete'],
+      tool: 'meter',
+      effect: 'noise',
+      task: 'MEDE RUÍDO'
+    },
+    {
+      id: 'ruido_worker_b',
+      x: 500,
+      y: 240,
+      direction: 'left',
+      look: 'industrial',
+      uniform: '#1565c0',
+      equipment: ['protetor', 'oculos'],
+      tool: 'box',
+      effect: 'noise',
+      task: 'PROTEÇÃO'
+    }
+  ],
+  brigada: [
+    {
+      id: 'brigada_worker_a',
+      x: 120,
+      y: 240,
+      direction: 'right',
+      look: 'fire',
+      uniform: '#b71c1c',
+      equipment: ['mascara', 'capacete', 'colete'],
+      tool: 'hose',
+      effect: 'heat',
+      task: 'BRIGADA'
+    },
+    {
+      id: 'brigada_worker_b',
+      x: 500,
+      y: 240,
+      direction: 'left',
+      look: 'warehouse',
+      uniform: '#ff8f00',
+      equipment: ['mascara', 'luvas'],
+      tool: 'flag',
+      effect: 'signal',
+      task: 'FUGA'
+    }
+  ],
+  eletrica: [
+    {
+      id: 'eletrica_worker_a',
+      x: 120,
+      y: 260,
+      direction: 'right',
+      look: 'industrial',
+      uniform: '#1565c0',
+      equipment: ['luvas', 'capacete', 'oculos'],
+      tool: 'probe',
+      effect: 'electric',
+      task: 'BLOQUEIO'
+    },
+    {
+      id: 'eletrica_worker_b',
+      x: 500,
+      y: 240,
+      direction: 'left',
+      look: 'technical',
+      uniform: '#26a69a',
+      equipment: ['luvas', 'botas'],
+      tool: 'wrench',
+      effect: 'electric',
+      task: 'MANUTENÇÃO'
+    }
+  ],
+  sinalizacao: [
+    {
+      id: 'sinalizacao_worker_a',
+      x: 120,
+      y: 240,
+      direction: 'right',
+      look: 'logistics',
+      uniform: '#8d6e63',
+      equipment: ['colete', 'capacete', 'botas'],
+      tool: 'flag',
+      effect: 'signal',
+      task: 'SINALIZA'
+    },
+    {
+      id: 'sinalizacao_worker_b',
+      x: 500,
+      y: 240,
+      direction: 'left',
+      look: 'technical',
+      uniform: '#26a69a',
+      equipment: ['colete', 'luvas'],
+      tool: 'box',
+      effect: 'dust',
+      task: 'ORGANIZA'
+    }
+  ],
+  altura: [
+    {
+      id: 'altura_worker_a',
+      x: 120,
+      y: 240,
+      direction: 'right',
+      look: 'industrial',
+      uniform: '#1565c0',
+      equipment: ['cinto', 'capacete'],
+      tool: 'probe',
+      effect: 'dust',
+      task: 'ANCORA'
+    },
+    {
+      id: 'altura_worker_b',
+      x: 500,
+      y: 240,
+      direction: 'left',
+      look: 'warehouse',
+      uniform: '#ff8f00',
+      equipment: ['cinto', 'luvas', 'botas'],
+      tool: 'wrench',
+      effect: 'dust',
+      task: 'ALTURA'
+    }
+  ],
+  logistica: [
+    {
+      id: 'logistica_worker_a',
+      x: 120,
+      y: 240,
+      direction: 'right',
+      look: 'logistics',
+      uniform: '#8d6e63',
+      equipment: ['botas', 'colete', 'capacete'],
+      tool: 'box',
+      effect: 'dust',
+      task: 'CARGA'
+    },
+    {
+      id: 'logistica_worker_b',
+      x: 500,
+      y: 240,
+      direction: 'left',
+      look: 'technical',
+      uniform: '#26a69a',
+      equipment: ['botas', 'luvas'],
+      tool: 'tablet',
+      effect: 'paper',
+      task: 'CONFERE'
+    }
+  ],
+  pgr: [
+    {
+      id: 'pgr_worker_a',
+      x: 120,
+      y: 210,
+      direction: 'right',
+      look: 'office',
+      uniform: '#90caf9',
+      equipment: ['prancheta', 'oculos'],
+      tool: 'tablet',
+      effect: 'paper',
+      task: 'PGR'
+    },
+    {
+      id: 'pgr_worker_b',
+      x: 500,
+      y: 240,
+      direction: 'left',
+      look: 'technical',
+      uniform: '#26a69a',
+      equipment: ['prancheta', 'capacete', 'colete'],
+      tool: 'box',
+      effect: 'paper',
+      task: 'RISCO'
+    }
+  ],
+  ergonomia: [
+    {
+      id: 'ergonomia_worker_a',
+      x: 120,
+      y: 160,
+      direction: 'right',
+      look: 'office',
+      uniform: '#90caf9',
+      equipment: ['cadeira', 'oculos'],
+      tool: 'tablet',
+      effect: 'screen',
+      task: 'POSTO'
+    },
+    {
+      id: 'ergonomia_worker_b',
+      x: 500,
+      y: 240,
+      direction: 'left',
+      look: 'technical',
+      uniform: '#26a69a',
+      equipment: ['cadeira', 'colete', 'botas'],
+      tool: 'tablet',
+      effect: 'paper',
+      task: 'PAUSA'
+    }
   ]
 };
 
@@ -324,6 +595,11 @@ export function getPhaseMap(index) {
     roomDefs: [room],
     rooms: { [room.id]: room },
     props: [buildPoster(phase), ...(DECOR[phase.id] || [])],
+    workers: (WORKERS[phase.id] || []).map((worker) => ({
+      ...worker,
+      color: phase.color,
+      equipment: [...worker.equipment]
+    })),
     playerStart: { ...PLAYER_START },
     npcSpawn: { ...NPC_SPAWN },
     exit: { ...EXIT }

@@ -123,8 +123,9 @@ Use `↑`/`↓`/D-pad/analógico para escolher, `Enter`/`A` para equipar/remover
 - **Cenários temáticos**: almoxarifado de EPI, produção/máquinas, ruído, brigada, elétrica, sinalização, altura, logística, PGR e ergonomia.
 - **Arte 100% procedural**: sprites, EPIs, ícones, cenário e partículas são desenhados com retângulos/círculos no canvas. Não há PNGs externos.
 - **Sprites detalhados** de jogador e especialistas em `CharacterRenderer.js`, com silhueta mais alta, sombreamento, cabelos, óculos, crachás e animação de caminhada/idle.
+- **Funcionários de cenário** em `WorkerRenderer.js`: cada fase tem uma pequena equipe trabalhando no setor, com uniforme, tarefa, ferramenta/efeito sutil e os EPIs representativos da NR da sala.
 - **Retratos animados** em `PortraitRenderer.js`: rostos únicos por especialista, piscada periódica e boca em movimento durante a digitação do diálogo.
-- **Cenário em camadas** em `EnvironmentRenderer.js`: rodapés, soleiras, luzes de teto, porta de fase, poeira ambiente e props extras por setor.
+- **Cenário em camadas** em `EnvironmentRenderer.js`: rodapés, soleiras, luzes de teto, porta de fase, faixa de parede, cantos de piso, marca d'água da NR, postos de trabalho e poeira ambiente.
 - **Camadas de equipamento** desenhadas sobre o personagem: capacete, óculos, protetor, máscara, luvas, colete, cinto, botas e prancheta; a cadeira aparece no cenário do escritório.
 - **Inventário (`I`)** com tempo, progresso, EPIs, prévia do personagem, três decorações cosméticas e atalho para o manual.
 - **Cache do cenário estático**: piso, paredes, luzes e rótulos são renderizados uma vez em um canvas auxiliar, mantendo a exploração fluida em 640×480.
@@ -167,9 +168,10 @@ Use `↑`/`↓`/D-pad/analógico para escolher, `Enter`/`A` para equipar/remover
 │       ├── Game.js            # loop, estados, HUD e integração
 │       ├── State.js
 │       ├── Entity.js
-│       ├── CharacterRenderer.js # sprites detalhados do jogador e NPCs
+│       ├── CharacterRenderer.js # sprites detalhados do jogador, NPCs e funcionários
 │       ├── PortraitRenderer.js  # retratos animados do diálogo
-│       ├── EnvironmentRenderer.js # ambientação do cenário
+│       ├── EnvironmentRenderer.js # ambientação e decoração temática
+│       ├── WorkerRenderer.js    # funcionários, ferramentas e efeitos por fase
 │       ├── Player.js
 │       ├── NPC.js
 │       ├── Dialog.js
@@ -198,16 +200,17 @@ Use `↑`/`↓`/D-pad/analógico para escolher, `Enter`/`A` para equipar/remover
 
 ## Status de validação
 
-- `npm test` verde: **34 arquivos JavaScript** + smoke test de dados, fases, lógica, inventário, decoração, controle Xbox e menu de pausa.
+- `npm test` verde: **35 arquivos JavaScript** + smoke test de dados, fases, funcionários, lógica, inventário, decoração, controle Xbox e menu de pausa.
 - Fluxo principal validado em **Chromium/Edge**: menu, fases lineares, diálogo, desafio, porta liberada, próxima fase, manual, save/load e certificado.
 - Upgrade visual e de leitura validado em **Chromium/Edge**: menu JAMSOFT, textos nítidos em 2x, inventário, diálogo, desafio, HUD, manual e certificado; console sem erros.
+- Decoração por fase validada em **Chromium/Edge**: faixas de parede, marca d'água da NR, postos de trabalho e dois funcionários com EPIs representativos em cada uma das 10 salas.
 - Controle Xbox validado com Gamepad API simulada: A/B/Start/X/Y, D-pad, analógico, menu de pausa e inventário.
 - Exploração medida em **60 fps** com resolução lógica 640×480 e backing store 1280×960.
 - Progressão das 10 fases, porta de saída e certificado validadas por automação de estado.
 - Save **v3.1** registra fase, decoração e tempo jogado; saves antigos sem fase são migrados pela primeira NR pendente e saves sem decoração usam o pin padrão.
 - **Pendente de validação manual:** controle Xbox físico, tela cheia (`F`), Firefox/Safari, hardware definitivo da feira e revisão humana final das NRs.
 
-Detalhes e limitações: [qa/2026-10-27-v1.0-smoke.md](qa/2026-10-27-v1.0-smoke.md), [qa/2026-10-28-visual-upgrade.md](qa/2026-10-28-visual-upgrade.md), [qa/2026-10-28-linear-phases.md](qa/2026-10-28-linear-phases.md), [qa/2026-10-28-ui-inventory.md](qa/2026-10-28-ui-inventory.md) e [qa/2026-10-28-gamepad-xbox.md](qa/2026-10-28-gamepad-xbox.md).
+Detalhes e limitações: [qa/2026-10-27-v1.0-smoke.md](qa/2026-10-27-v1.0-smoke.md), [qa/2026-10-28-visual-upgrade.md](qa/2026-10-28-visual-upgrade.md), [qa/2026-10-28-linear-phases.md](qa/2026-10-28-linear-phases.md), [qa/2026-10-28-ui-inventory.md](qa/2026-10-28-ui-inventory.md), [qa/2026-10-28-gamepad-xbox.md](qa/2026-10-28-gamepad-xbox.md) e [qa/2026-10-28-phase-decoration-workers.md](qa/2026-10-28-phase-decoration-workers.md).
 
 ## Harness, agentes e sprints
 

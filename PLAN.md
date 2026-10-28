@@ -7,7 +7,7 @@
 
 > Este plano serve tanto para execução quanto para retrospectiva. O jogo já está implementado; os pontos abaixo documentam como o trabalho foi dividido e como repetir o processo em uma nova rodada.
 >
-> **Atualização 2026-10-28:** a exploração aberta em 12 salas foi substituída por **10 fases lineares**, uma por NR, com porta de saída liberada após o desafio. Na mesma rodada, o menu recebeu a identidade JAMSOFT em vermelho/preto/branco, os textos passaram a usar renderização 2x e foi adicionado o **inventário (`I`)** com progresso, EPIs, decoração e acesso ao manual. Também foi adicionado **suporte a controle Xbox Series** (A, B, Start, X, Y, D-pad e analógico) e um **menu de pausa** aberto por `Start`. O histórico das sprints abaixo permanece como registro; o comportamento vigente está em [SPEC.md](SPEC.md) e [README.md](README.md).
+> **Atualização 2026-10-28:** a exploração aberta em 12 salas foi substituída por **10 fases lineares**, uma por NR, com porta de saída liberada após o desafio. Na mesma rodada, o menu recebeu a identidade JAMSOFT em vermelho/preto/branco, os textos passaram a usar renderização 2x e foi adicionado o **inventário (`I`)** com progresso, EPIs, decoração e acesso ao manual. Também foi adicionado **suporte a controle Xbox Series** (A, B, Start, X, Y, D-pad e analógico) e um **menu de pausa** aberto por `Start`. Cada fase também recebeu **dois funcionários de cenário com EPIs representativos**, tarefas visuais e uma decoração de piso/parede mais organizada. O histórico das sprints abaixo permanece como registro; o comportamento vigente está em [SPEC.md](SPEC.md) e [README.md](README.md).
 
 ---
 

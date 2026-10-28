@@ -20,6 +20,7 @@ import { drawProp, drawRoomLabels, getNearbyInteractiveProp } from './Props.js';
 import { drawIcon, drawOverlay } from './EquipmentRenderer.js';
 import { drawMapDetails, drawDust, drawPhaseDoor } from './EnvironmentRenderer.js';
 import { drawPlayerSprite } from './CharacterRenderer.js';
+import { drawWorker } from './WorkerRenderer.js';
 
 import { getRoomAt } from '../data/maps.js';
 import { PHASES, getPhaseMap } from '../data/phaseMaps.js';
@@ -770,11 +771,24 @@ export class Game {
       last: this._phaseIndex >= PHASES.length - 1
     });
 
-    for (const npc of this._npcs) {
-      npc.render(this._renderer, { nearby: npc === this._nearbyNpc });
-    }
+    // Funcionários, especialista e jogador são ordenados pela profundidade
+    // para que ninguém pareça estar flutuando sobre outra pessoa.
+    const actors = [
+      ...(this._map.workers || []).map((worker) => ({
+        y: worker.y,
+        draw: () => drawWorker(this._renderer, worker, this._time)
+      })),
+      ...this._npcs.map((npc) => ({
+        y: npc.y,
+        draw: () => npc.render(this._renderer, { nearby: npc === this._nearbyNpc })
+      })),
+      {
+        y: this._player.y,
+        draw: () => this._player.render(this._renderer)
+      }
+    ].sort((a, b) => a.y - b.y);
 
-    this._player.render(this._renderer);
+    for (const actor of actors) actor.draw();
   }
 
   _renderHud() {

@@ -65,6 +65,8 @@ O jogador explora uma sede em pixel art, conversa com especialistas, responde de
 - **10 fases lineares**, cada uma com uma sala temática completa dedicada a uma NR:
   - EPI (NR-6), Produção/Máquinas (NR-12), Ruído (NR-15), Brigada (NR-23), Elétrica (NR-10), Sinalização (NR-26), Altura (NR-35), Logística (NR-11), PGR (NR-1) e Ergonomia (NR-17).
   - Cada sala tem piso próprio, props do risco, pôster com regras resumidas da NR e um especialista.
+  - Cada sala tem **dois funcionários de cenário** com tarefa visual e EPIs representativos da NR, posicionados fora das áreas reservadas (pôster, porta, especialista e início do jogador).
+  - A decoração inclui faixa de parede, cantos de piso, marca d'água da NR e postos de trabalho sob os funcionários.
   - A saída fica na parede direita; começa bloqueada e abre após o acerto do desafio.
 - Jogador de **24×24 px**, velocidade de aproximadamente **150 px/s**.
 - Movimento em 4 direções, colisão com paredes, props e limites do mapa.
@@ -388,6 +390,15 @@ CERTIFICATE
     label: 'NR-6 · ALMOXARIFADO'
   }],
   props: [/* pôster gerado + props temáticos */],
+  workers: [{
+    id: 'epi_worker_a',
+    x: 120, y: 240,
+    look: 'warehouse',
+    equipment: ['capacete', 'luvas', 'colete'],
+    tool: 'scanner',
+    effect: 'scan',
+    task: 'SEPARA EPI'
+  }],
   playerStart: { x: 308, y: 356 },
   npcSpawn: { x: 307, y: 196 },
   exit: { x: 576, y: 192, w: 32, h: 64 }
@@ -448,7 +459,7 @@ CERTIFICATE
 | AC1 | O menu abre com as três opções e “CONTINUAR” desabilitado sem save. |
 | AC2 | “NOVO JOGO” inicia a introdução e permite explorar depois dela. |
 | AC3 | O jogador se move nas quatro direções e não atravessa paredes/props. |
-| AC4 | Cada uma das 10 fases carrega sua sala temática, NPC, pôster de NR e props. |
+| AC4 | Cada uma das 10 fases carrega sua sala temática, NPC, pôster de NR, props e dois funcionários com o EPI da fase. |
 | AC5 | Cada diálogo termina em um desafio com quatro alternativas. |
 | AC6 | Resposta errada mostra a correta, permite dica e não entrega o EPI. |
 | AC7 | Resposta correta entrega o EPI correto, atualiza o sprite, o HUD e o save. |

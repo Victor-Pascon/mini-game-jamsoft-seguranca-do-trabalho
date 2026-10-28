@@ -254,7 +254,7 @@ Um visitante novo consegue:
 | Arquitetura e integração | A1 | `js/game/Game.js`, `js/game/State.js`, `SPEC.md`, `PLAN.md` |
 | Engine | A2 | `js/engine/*`, `js/game/Entity.js`, `Player.js`, `NPC.js`, `Props.js` |
 | Conteúdo | A3 | `js/data/norms.js`, `challenges.js`, `dialogs.js`, metadados de `equipment.js` e `npcs.js` |
-| Visual/UX | A4 | `js/design-tokens/snes-theme.js`, `EquipmentRenderer.js`, `EquipmentSystem.js` (visual), `Dialog.js` (layout), `Challenge.js` (layout), `NormManual.js`, `Certificate.js`, `style.css` |
+| Visual/UX | A4 | `js/design-tokens/snes-theme.js`, `EquipmentRenderer.js`, `EquipmentSystem.js` (visual), `CharacterRenderer.js`, `WorkerRenderer.js`, `Dialog.js` (layout), `Challenge.js` (layout), `NormManual.js`, `Certificate.js`, `style.css` |
 | QA | A5 | `scripts/check.mjs`, `scripts/smoke.mjs`, `HARNESS_CHECKLIST.md`, relatórios de QA |
 | Documentação compartilhada | A1 + todos | `README.md`; cada agente revisa sua seção |
 
