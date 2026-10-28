@@ -14,6 +14,7 @@ Exemplos:
 - `2026-10-28-visual-upgrade.md`
 - `2026-10-28-linear-phases.md`
 - `2026-10-28-ui-inventory.md`
+- `2026-10-28-gamepad-xbox.md`
 - `2026-10-28-fair-rehearsal.md`
 
 ## O que registrar

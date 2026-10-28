@@ -168,7 +168,7 @@ export class Inventory {
       font: FONTS.TINY,
       shadow: false
     });
-    renderer.drawText('I / ESC FECHAR', 616, 22, {
+    renderer.drawText('I / Y FECHAR', 616, 22, {
       color: COLORS.JAMSOFT_SMOKE,
       font: FONTS.TINY,
       align: 'right',
@@ -181,7 +181,7 @@ export class Inventory {
     this._renderStudy(renderer);
 
     renderer.drawText(
-      '↑↓ escolher  •  ENTER equipar/remover ou abrir  •  I / ESC fechar',
+      '↑↓ escolher  •  A / ENTER equipar/remover ou abrir  •  B / ESC fechar',
       320,
       448,
       {

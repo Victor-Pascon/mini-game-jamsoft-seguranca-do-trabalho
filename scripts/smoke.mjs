@@ -17,6 +17,8 @@ import { Inventory } from '../js/game/Inventory.js';
 import { Player } from '../js/game/Player.js';
 import { decorativeItems, isDecorationUnlocked } from '../js/data/decorations.js';
 import { SaveSystem } from '../js/engine/SaveSystem.js';
+import { readGamepad } from '../js/engine/Gamepad.js';
+import { PauseMenu, PAUSE_OPTIONS } from '../js/game/PauseMenu.js';
 
 const failures = [];
 
@@ -337,6 +339,62 @@ inventory.update(0.016, new FakeInput(['KeyM']), { equipment: invEquipment, play
 check(inventory.consumeStudyRequest(), 'Inventário solicita material de estudo');
 inventory.update(0.016, new FakeInput(['KeyI']), { equipment: invEquipment, player: invPlayer });
 check(!inventory.isOpen(), 'Inventário fecha com I');
+
+// ---------------------------------------------------------------------------
+// Controle Xbox (mapeamento puro, sem navegador)
+// ---------------------------------------------------------------------------
+function fakeGamepad({ buttons = {}, axes = [0, 0] } = {}) {
+  return {
+    index: 0,
+    connected: true,
+    mapping: 'standard',
+    axes,
+    buttons: Array.from({ length: 16 }, (_, index) => ({
+      pressed: Boolean(buttons[index]),
+      value: buttons[index] ? 1 : 0
+    }))
+  };
+}
+
+const neutralPad = readGamepad(fakeGamepad());
+check(neutralPad?.buttons.a === false, 'Controle neutro não confirma sozinho');
+check(neutralPad?.movement.x === 0 && neutralPad?.movement.y === 0, 'Controle neutro não move');
+
+const facePad = readGamepad(fakeGamepad({ buttons: { 0: true, 1: true, 2: true, 3: true, 9: true } }));
+check(facePad?.buttons.a && facePad?.buttons.b, 'A e B do controle são mapeados');
+check(facePad?.buttons.x && facePad?.buttons.y, 'X e Y do controle são mapeados');
+check(facePad?.buttons.start, 'Start do controle é mapeado');
+
+const dpadPad = readGamepad(fakeGamepad({ buttons: { 12: true, 14: true } }));
+check(dpadPad?.directions.up && dpadPad?.directions.left, 'D-pad funciona nas direções');
+check(dpadPad?.movement.x === 0 && dpadPad?.movement.y === 0, 'D-pad não altera o vetor analógico');
+
+const analogPad = readGamepad(fakeGamepad({ axes: [0, -0.8] }));
+check(analogPad?.directions.up, 'Analógico funciona nos menus');
+check(analogPad?.movement.y < 0, 'Analógico move o personagem');
+
+const deadzonePad = readGamepad(fakeGamepad({ axes: [0.18, 0.12] }));
+check(deadzonePad?.movement.x === 0 && deadzonePad?.movement.y === 0, 'Zona morta ignora drift do analógico');
+
+const analogRight = readGamepad(fakeGamepad({ axes: [0.85, 0.1] }));
+check(
+  analogRight?.directions.right && !analogRight?.directions.down,
+  'Analógico usa o eixo dominante nos menus'
+);
+
+const pause = new PauseMenu();
+check(PAUSE_OPTIONS.length === 5, 'Menu de pausa tem cinco opções');
+pause.open();
+pause.update(0.016, new FakeInput(['ArrowDown']));
+check(pause.getSelectedId() === 'inventory', 'Menu de pausa navega com setas/D-pad');
+pause.update(0.016, new FakeInput(['Space']));
+check(!pause.isOpen() && pause.consumeAction() === 'inventory', 'A confirma a opção do menu');
+pause.open();
+pause.update(0.016, new FakeInput(['Start']));
+check(pause.consumeAction() === 'resume', 'Start fecha o menu de pausa');
+pause.open();
+pause.update(0.016, new FakeInput(['Escape']));
+check(pause.consumeAction() === 'resume', 'B fecha o menu de pausa');
 
 // ---------------------------------------------------------------------------
 // Save da fase

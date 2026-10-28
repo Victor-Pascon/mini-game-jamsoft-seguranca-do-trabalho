@@ -2,7 +2,7 @@
 
 **A Jornada da Proteção** é um mini-game educativo de **Segurança do Trabalho** criado para a feira da JAMSOFT TECNOLOGIA. Em **10 salas temáticas em pixel art estilo SNES**, você conversa com especialistas, responde desafios sobre as **Normas Regulamentadoras (NRs)** e equipa o personagem com **10 itens de proteção** até receber o certificado de **Guardião da Segurança**.
 
-O jogo é rápido de aprender, jogável só com teclado e pensado para uma demonstração de feira: uma partida completa leva cerca de **5 a 10 minutos**.
+O jogo é rápido de aprender, jogável só com teclado ou controle Xbox Series e pensado para uma demonstração de feira: uma partida completa leva cerca de **5 a 10 minutos**.
 
 ---
 
@@ -38,10 +38,23 @@ npm run smoke   # apenas o smoke test
 | `I` | Abrir/fechar o Inventário (tempo, fases, EPIs e decoração) |
 | `F` | Alternar tela cheia |
 | `V` | Ligar/desligar o som |
-| `Esc` | Voltar/fechar painéis |
+| `Esc` | Voltar/fechar painéis; na exploração, abrir o menu de pausa |
 | `↑` `↓` | Navegar no menu, no inventário e nas opções |
 
-No manual: `←` `→` troca de NR, `Enter` abre o detalhe e `Esc` volta. No inventário: `↑` `↓` escolhe, `Enter` equipa/remove a decoração ou abre o manual.
+### Controle Xbox Series / Standard Gamepad
+
+| Botão | Ação |
+| --- | --- |
+| `A` | Interagir, avançar diálogo, confirmar e selecionar |
+| `B` | Voltar/fechar painéis |
+| `Start` | Abrir/fechar o menu de pausa |
+| Analógico esquerdo ou `D-pad` | Mover o personagem e navegar por todos os menus |
+| `X` | Abrir/fechar o Manual de NRs |
+| `Y` | Abrir/fechar o Inventário |
+
+O controle funciona nos menus, diálogos, desafios, manual, inventário, certificado e menu de pausa. O menu de pausa (`Start`) reúne **Continuar**, **Inventário**, **Manual de NRs**, **Como jogar** e **Menu principal**.
+
+No manual: `←` `→` troca de NR, `Enter`/`A` abre o detalhe e `Esc`/`B` volta. No inventário: `↑` `↓` escolhe, `Enter`/`A` equipa/remove a decoração ou abre o manual, e `Esc`/`B` fecha.
 
 ---
 
@@ -49,7 +62,7 @@ No manual: `←` `→` troca de NR, `Enter` abre o detalhe e `Esc` volta. No inv
 
 1. **Escolha “NOVO JOGO”** no menu.
 2. **Explore a sala da fase atual**, inteiramente decorada com objetos e um pôster das regras da NR.
-3. **Aproxime-se do especialista** e pressione `Espaço`.
+3. **Aproxime-se do especialista** e pressione `A` / `Espaço`.
 4. Leia o diálogo, **responda ao desafio** de múltipla escolha e confira a explicação.
 5. Cada acerto **equipa um novo item no sprite** e **libera a porta de saída** na parede direita.
 6. **Atravesse a porta** para carregar a próxima sala e a próxima NR.
@@ -80,11 +93,11 @@ O HUD segue a ordem “da cabeça aos pés”: capacete, óculos, protetor, más
 
 ### Manual de NRs
 
-O manual (`M`) reúne **12 cartas**: as 10 NRs dos desafios e duas cartas extras de consulta (**NR-5** e **NR-7**). Cada carta tem resumo, principais regras, vínculo com o EPI da jornada e um aviso de que o conteúdo é educativo.
+O manual (`M` ou `X`) reúne **12 cartas**: as 10 NRs dos desafios e duas cartas extras de consulta (**NR-5** e **NR-7**). Cada carta tem resumo, principais regras, vínculo com o EPI da jornada e um aviso de que o conteúdo é educativo.
 
 ### Inventário e decoração
 
-O inventário (`I`) funciona como uma pausa de consulta durante a exploração. Ele mostra **tempo jogado**, **fase atual**, **fases concluídas**, **EPIs adquiridos**, a lista completa dos 10 itens e uma prévia do personagem.
+O inventário (`I` ou `Y`) funciona como uma pausa de consulta durante a exploração. Ele mostra **tempo jogado**, **fase atual**, **fases concluídas**, **EPIs adquiridos**, a lista completa dos 10 itens e uma prévia do personagem.
 
 Também há três itens cosméticos, que não alteram a proteção nem o conteúdo educativo:
 
@@ -92,7 +105,11 @@ Também há três itens cosméticos, que não alteram a proteção nem o conteú
 - **Adesivo de Capacete:** liberado junto com o capacete da NR-6;
 - **Faixa de Guardião:** liberada após cinco fases concluídas.
 
-Use `↑`/`↓` para escolher, `Enter` para equipar/remover e a última opção para abrir o Manual de NRs. A decoração escolhida e o tempo jogado ficam no save.
+Use `↑`/`↓`/D-pad/analógico para escolher, `Enter`/`A` para equipar/remover e a última opção para abrir o Manual de NRs. A decoração escolhida e o tempo jogado ficam no save.
+
+### Menu de pausa
+
+`Start` (ou `Esc`) abre um menu com **Continuar**, **Inventário**, **Manual de NRs**, **Como jogar** e **Menu principal**. A navegação funciona com setas, D-pad ou analógico, e `A` confirma. A opção **Menu principal** salva a sessão antes de voltar ao início; `Start`, `Esc` ou `B` fecham o menu.
 
 ---
 
@@ -114,7 +131,7 @@ Use `↑`/`↓` para escolher, `Enter` para equipar/remover e a última opção 
 - Loop com `requestAnimationFrame`, colisão por eixos, diálogos com efeito de máquina de escrever e transições de estado.
 - **WebAudio** para efeitos sonoros procedurais, com mute persistente.
 - **`localStorage`** para progresso (`jamsoft_seguranca_save`, versão **3.1**) e som (`jamsoft_seguranca_mute`). O save guarda fase, posição, EPIs, desafios, decoração e tempo jogado.
-- Testes sem navegador para dados, 10 fases, save, desafios, diálogo, manual, inventário e decoração (`scripts/smoke.mjs`).
+- Testes sem navegador para dados, 10 fases, save, desafios, diálogo, manual, inventário, decoração, controle Xbox e menu de pausa (`scripts/smoke.mjs`).
 
 ---
 
@@ -130,7 +147,8 @@ Use `↑`/`↓` para escolher, `Enter` para equipar/remover e a última opção 
 │   ├── design-tokens/
 │   │   └── snes-theme.js      # paleta, fontes e utilitários visuais
 │   ├── engine/
-│   │   ├── Input.js           # teclado, WASD/setas, confirmação
+│   │   ├── Input.js           # teclado + polling do controle Xbox
+│   │   ├── Gamepad.js         # mapeamento Standard Gamepad (A/B/Start/D-pad/analógico)
 │   │   ├── Renderer.js        # canvas, painéis, mapa, partículas, glow
 │   │   ├── Collision.js       # colisão com tiles e entidades
 │   │   ├── SaveSystem.js      # save/load local
@@ -158,6 +176,7 @@ Use `↑`/`↓` para escolher, `Enter` para equipar/remover e a última opção 
 │       ├── Challenge.js
 │       ├── NormManual.js
 │       ├── Inventory.js         # inventário, estatísticas e decoração
+│       ├── PauseMenu.js         # menu de pausa aberto por Start/Esc
 │       ├── EquipmentSystem.js
 │       ├── EquipmentRenderer.js
 │       ├── Certificate.js
@@ -179,15 +198,16 @@ Use `↑`/`↓` para escolher, `Enter` para equipar/remover e a última opção 
 
 ## Status de validação
 
-- `npm test` verde: **32 arquivos JavaScript** + smoke test de dados, fases, lógica, inventário e decoração.
+- `npm test` verde: **34 arquivos JavaScript** + smoke test de dados, fases, lógica, inventário, decoração, controle Xbox e menu de pausa.
 - Fluxo principal validado em **Chromium/Edge**: menu, fases lineares, diálogo, desafio, porta liberada, próxima fase, manual, save/load e certificado.
 - Upgrade visual e de leitura validado em **Chromium/Edge**: menu JAMSOFT, textos nítidos em 2x, inventário, diálogo, desafio, HUD, manual e certificado; console sem erros.
+- Controle Xbox validado com Gamepad API simulada: A/B/Start/X/Y, D-pad, analógico, menu de pausa e inventário.
 - Exploração medida em **60 fps** com resolução lógica 640×480 e backing store 1280×960.
 - Progressão das 10 fases, porta de saída e certificado validadas por automação de estado.
 - Save **v3.1** registra fase, decoração e tempo jogado; saves antigos sem fase são migrados pela primeira NR pendente e saves sem decoração usam o pin padrão.
-- **Pendente de validação manual:** tela cheia (`F`), Firefox/Safari, hardware definitivo da feira e revisão humana final das NRs.
+- **Pendente de validação manual:** controle Xbox físico, tela cheia (`F`), Firefox/Safari, hardware definitivo da feira e revisão humana final das NRs.
 
-Detalhes e limitações: [qa/2026-10-27-v1.0-smoke.md](qa/2026-10-27-v1.0-smoke.md), [qa/2026-10-28-visual-upgrade.md](qa/2026-10-28-visual-upgrade.md), [qa/2026-10-28-linear-phases.md](qa/2026-10-28-linear-phases.md) e [qa/2026-10-28-ui-inventory.md](qa/2026-10-28-ui-inventory.md).
+Detalhes e limitações: [qa/2026-10-27-v1.0-smoke.md](qa/2026-10-27-v1.0-smoke.md), [qa/2026-10-28-visual-upgrade.md](qa/2026-10-28-visual-upgrade.md), [qa/2026-10-28-linear-phases.md](qa/2026-10-28-linear-phases.md), [qa/2026-10-28-ui-inventory.md](qa/2026-10-28-ui-inventory.md) e [qa/2026-10-28-gamepad-xbox.md](qa/2026-10-28-gamepad-xbox.md).
 
 ## Harness, agentes e sprints
 

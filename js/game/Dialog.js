@@ -245,7 +245,7 @@ export class Dialog {
       const blink = Math.sin(this._blinkTimer * 6) > -0.2;
       if (blink) {
         renderer.drawText(
-          this._currentLine < this._lines.length - 1 ? 'ESPAÇO ▼' : 'ESPAÇO para encerrar ▼',
+          this._currentLine < this._lines.length - 1 ? 'A / ESPAÇO ▼' : 'A / ESPAÇO para encerrar ▼',
           boxX + boxW / 2,
           boxY + boxH - 21,
           {

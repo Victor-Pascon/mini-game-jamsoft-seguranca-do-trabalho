@@ -8,26 +8,28 @@
 
 ## 0. Status desta versão
 
-- **Versão:** 1.2
+- **Versão:** 1.3
 - **Data de referência:** 28/10/2026
-- **Ambiente de validação:** navegador Chromium/Edge em desktop, servidor local `npm start`.
-- **Registro detalhado:** [qa/2026-10-28-ui-inventory.md](qa/2026-10-28-ui-inventory.md), [qa/2026-10-28-linear-phases.md](qa/2026-10-28-linear-phases.md) e [qa/2026-10-27-v1.0-smoke.md](qa/2026-10-27-v1.0-smoke.md) (histórico).
+- **Ambiente de validação:** navegador Chromium/Edge em desktop, servidor local `npm start`, controle Xbox simulado via Gamepad API.
+- **Registro detalhado:** [qa/2026-10-28-gamepad-xbox.md](qa/2026-10-28-gamepad-xbox.md), [qa/2026-10-28-ui-inventory.md](qa/2026-10-28-ui-inventory.md), [qa/2026-10-28-linear-phases.md](qa/2026-10-28-linear-phases.md) e [qa/2026-10-27-v1.0-smoke.md](qa/2026-10-27-v1.0-smoke.md) (histórico).
 
 | Verificação | Status | Observação |
 | --- | --- | --- |
-| `npm test` | ✅ Passou | Sintaxe dos 32 JS + smoke test de dados, 10 fases, inventário e decoração |
+| `npm test` | ✅ Passou | Sintaxe dos 34 JS + smoke test de dados, fases, inventário, controle e pausa |
 | Menu e legibilidade | ✅ Validado | Identidade JAMSOFT em vermelho/preto/branco e textos nítidos com backing store 2x |
 | Fluxo de desafio e EPI | ✅ Validado | Helena/NR-6, incluindo erro, dica, acerto e capacete |
 | Fluxo completo das 10 fases | ✅ Validado | Playthrough automatizado: desafio → porta → próxima sala → certificado |
 | Porta de fase | ✅ Validado | Bloqueada sem EPI; libera após o acerto e carrega a próxima NR |
 | Manual de NRs | ✅ Validado | Lista, página, detalhe e fechamento |
 | Inventário e decoração | ✅ Validado | `I`, estatísticas, prévia, equipar/remover pin, adesivo e faixa |
+| Controle Xbox | ✅ Validado | A/B, Start, X/Y, D-pad e analógico no menu, exploração, pausa e inventário |
 | Save parcial | ✅ Validado | Reload + CONTINUAR restaura fase, decoração e tempo jogado |
 | Save completo | ✅ Validado | Abre direto no certificado |
 | Certificado e reset | ✅ Validado | Confirmação volta ao menu e apaga save |
 | Áudio/mute | ✅ Validado | Alternância e persistência |
 | Tela cheia | ⚠️ Manual | API exige gesto real do usuário; validar no notebook |
 | Console sem erros | ✅ Validado | Sem mensagens no fluxo testado |
+| Controle físico | ⚠️ Manual | Validar cabo/USB e mapeamento no Xbox Series do estande |
 | Firefox/Safari | ⚠️ Manual | Repetir o smoke no navegador da feira |
 
 > Itens com ⚠️ não são falhas: exigem validação humana no hardware/navegador definitivo.
@@ -66,7 +68,7 @@ npm start
 - [ ] Existem 10 fases lineares, uma por NR, na ordem do HUD.
 - [ ] Inventário tem 3 itens cosméticos, sem efeito sobre a proteção.
 - [ ] Resolução lógica 640×480 com backing store 1280×960 e mapa 20×15 de 32 px.
-- [ ] Controles são apenas por teclado.
+- [ ] Controles são apenas por teclado ou controle Xbox Series (Standard Gamepad).
 - [ ] Disclaimer educativo está em README, manual e certificado.
 - [ ] A experiência cabe em 5–10 minutos.
 
@@ -84,7 +86,12 @@ npm start
 - [ ] `1`–`4` selecionam alternativas.
 - [ ] `M`, `I`, `F`, `V` e `Esc` funcionam.
 - [ ] `I` abre/fecha o inventário somente na exploração.
-- [ ] Ao perder foco, teclas não ficam “presas”.
+- [ ] `Start` abre/fecha o menu de pausa na exploração.
+- [ ] O menu de pausa abre Inventário, Manual, Como jogar e Menu principal.
+- [ ] A confirma e interage; B volta/fecha; X abre o manual; Y abre o inventário.
+- [ ] D-pad e analógico esquerdo movem o personagem e navegam por todos os menus.
+- [ ] A zona morta do analógico evita movimento e navegação por drift.
+- [ ] Ao perder foco, teclas e botões não ficam “presos”.
 
 ### 3.2 Renderer e colisão
 
@@ -148,17 +155,17 @@ npm start
 
 ### 4.3 Manual
 
-- [ ] `M` abre e fecha durante qualquer fase.
+- [ ] `M` ou X abre e fecha durante qualquer fase.
 - [ ] Lista tem 12 cartas em 2 páginas.
-- [ ] Setas trocam seleção/página.
-- [ ] `Enter` abre o detalhe.
-- [ ] `Esc` volta à lista.
+- [ ] Setas, D-pad ou analógico trocam seleção/página.
+- [ ] `Enter` ou A abrem o detalhe.
+- [ ] `Esc` ou B voltam à lista.
 - [ ] O detalhe mostra resumo, regras, EPI e status.
 - [ ] O aviso educativo e a fonte aparecem.
 
 ### 4.4 Inventário e decoração
 
-- [ ] `I` abre e fecha o inventário durante a exploração.
+- [ ] `I` ou Y abre e fecha o inventário durante a exploração.
 - [ ] O tempo jogado avança e é restaurado pelo save.
 - [ ] Fase atual, fases concluídas e EPIs adquiridos conferem com o HUD.
 - [ ] Os 10 EPIs aparecem com estado bloqueado/adquirido e seus nomes.
@@ -167,9 +174,20 @@ npm start
 - [ ] Adesivo de Capacete só libera com o capacete.
 - [ ] Faixa de Guardião só libera após 5 fases.
 - [ ] A opção de material de estudo abre o Manual de NRs.
+- [ ] D-pad/analógico navegam, A equipa/remove e B fecha.
 - [ ] Equipar/remover decoração não altera a proteção nem a progressão.
 
-### 4.5 Certificado
+### 4.5 Menu de pausa
+
+- [ ] `Start`/`Esc` abre o menu durante a exploração.
+- [ ] `Start`, `Esc` ou B fecham o menu.
+- [ ] D-pad/analógico navegam e A confirma.
+- [ ] Continuar retorna à exploração sem perder posição.
+- [ ] Inventário, Manual de NRs e Como jogar abrem os painéis corretos.
+- [ ] Menu principal salva a sessão e volta ao menu.
+- [ ] O tempo jogado não avança enquanto o menu está aberto.
+
+### 4.6 Certificado
 
 - [ ] A porta da 10ª fase aciona o certificado.
 - [ ] O certificado mostra os 10 ícones.
@@ -213,7 +231,7 @@ npm start
 
 ## 6. Acessibilidade e legibilidade
 
-- [ ] O jogo é operável sem mouse.
+- [ ] O jogo é operável sem mouse, por teclado ou controle Xbox.
 - [ ] O canvas tem `aria-label` descritivo.
 - [ ] Há texto alternativo/descrição do jogo no HTML.
 - [ ] Contraste de texto e painéis é suficiente.
@@ -227,7 +245,7 @@ npm start
 
 ---
 
-## 7. QA no navegador — smoke de 11 passos
+## 7. QA no navegador — smoke de 12 passos
 
 Executar em uma janela anônima, com `localStorage` limpo.
 
@@ -240,8 +258,9 @@ Executar em uma janela anônima, com `localStorage` limpo.
 - [ ] 7. Abrir o manual (`M`); navegar, abrir detalhe e voltar.
 - [ ] 8. Abrir o inventário (`I`); conferir estatísticas, equipar/remover decoração e abrir o manual pela opção de estudo; voltar.
 - [ ] 9. Recarregar; usar CONTINUAR; conferir fase, progresso, posição, decoração e tempo.
-- [ ] 10. Completar as 10 fases; atravessar a última porta e conferir o certificado.
-- [ ] 11. Confirmar; voltar ao menu; conferir save apagado.
+- [ ] 10. Com o controle Xbox, mover com D-pad e analógico; abrir o menu com Start; navegar com D-pad; abrir Inventário com A; fechar com B; abrir Manual com X; fechar com B.
+- [ ] 11. Completar as 10 fases; atravessar a última porta e conferir o certificado.
+- [ ] 12. Confirmar; voltar ao menu; conferir save apagado.
 
 ### Console
 
@@ -267,6 +286,8 @@ Executar em uma janela anônima, com `localStorage` limpo.
 - [ ] Notebook carregado e conectado à energia.
 - [ ] Monitor/configuração de vídeo definidos.
 - [ ] Teclado testado (setas, WASD, Espaço, Enter, M, I, F, V, Esc, 1–4).
+- [ ] Controle Xbox Series conectado por cabo/USB, reconhecido no navegador e com botões testados.
+- [ ] Analógico e D-pad testados na exploração e nos menus.
 - [ ] Som testado no volume adequado.
 - [ ] Mouse não é necessário; se presente, não atrapalha.
 - [ ] Tela limpa, sem notificações ou janelas pessoais.
@@ -303,6 +324,7 @@ Executar em uma janela anônima, com `localStorage` limpo.
 | Sem áudio | Verificar volume; tentar `V`; seguir sem som |
 | Fullscreen falhou | Jogar na janela; usar zoom do navegador se necessário |
 | Teclado falhou | Trocar teclado/porta; manter setas + Espaço como fallback |
+| Controle não detectado | Reconectar por cabo, pressionar um botão com o jogo aberto e usar teclado como fallback |
 | Servidor caiu | Reiniciar `npm start`; abrir novamente |
 | Internet caiu | Não afeta: o jogo é local; não usar CDN |
 

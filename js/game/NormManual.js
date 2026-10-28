@@ -247,7 +247,7 @@ export class NormManual {
       }
     });
 
-    renderer.drawText('↑↓ selecionar  •  ←→ página  •  ENTER abrir  •  M fechar', 24, 436, {
+    renderer.drawText('↑↓ selecionar  •  ←→ página  •  A abrir  •  B fechar', 24, 436, {
       color: COLORS.UI_TEXT_DIM,
       font: FONTS.TINY,
       shadow: false
@@ -349,7 +349,7 @@ export class NormManual {
       });
     });
 
-    renderer.drawText(`←→ outra NR  •  ESC volta  •  M fecha`, 24, 440, {
+    renderer.drawText(`←→ outra NR  •  B / ESC volta  •  M / X fecha`, 24, 440, {
       color: COLORS.UI_TEXT_DIM,
       font: FONTS.TINY,
       shadow: false

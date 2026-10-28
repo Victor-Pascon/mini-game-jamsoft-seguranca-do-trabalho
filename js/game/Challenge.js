@@ -224,7 +224,7 @@ export class Challenge {
       });
     });
 
-    renderer.drawText('↑ ↓ ou 1-4 para escolher  •  ESPAÇO confirma', 46, 430, {
+    renderer.drawText('↑ ↓ ou 1-4 para escolher  •  A / ESPAÇO confirma', 46, 430, {
       color: COLORS.UI_TEXT_DIM,
       font: FONTS.TINY,
       shadow: false
@@ -303,7 +303,7 @@ export class Challenge {
 
     const blink = Math.sin(this._time * 6) > -0.2;
     if (blink) {
-      renderer.drawText('ESPAÇO para equipar o personagem', 320, 374, {
+      renderer.drawText('A / ESPAÇO para equipar o personagem', 320, 374, {
         color: COLORS.SAFETY_GREEN,
         font: FONTS.PRIMARY,
         align: 'center',
@@ -387,7 +387,7 @@ export class Challenge {
     const blink = Math.sin(this._time * 6) > -0.2;
     if (blink) {
       renderer.drawText(
-        this._showHint ? 'ESPAÇO para voltar à pergunta' : 'ESPAÇO para ver a dica',
+        this._showHint ? 'A / ESPAÇO para voltar à pergunta' : 'A / ESPAÇO para ver a dica',
         320,
         330,
         {

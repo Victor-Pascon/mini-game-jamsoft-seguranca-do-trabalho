@@ -1,9 +1,9 @@
 # SPEC — JAMSOFT TECNOLOGIA: Segurança em Jogo
 
-**Versão:** 1.1
+**Versão:** 1.2
 **Status:** implementado e validado para demonstração em feira  
 **Produto:** mini-game educativo de Segurança do Trabalho  
-**Plataforma:** navegador desktop, teclado, HTML5 Canvas  
+**Plataforma:** navegador desktop, teclado, controle Xbox Series, HTML5 Canvas
 **Título interno:** A Jornada da Proteção
 
 ---
@@ -30,7 +30,7 @@ O jogador explora uma sede em pixel art, conversa com especialistas, responde de
 | Público principal | Visitantes da feira, estudantes e trabalhadores, sem conhecimento prévio das NRs |
 | Faixa etária | A partir de 10 anos |
 | Sessão média | 5 a 10 minutos |
-| Contexto | Notebook/desktop em um estande, com teclado e som |
+| Contexto | Notebook/desktop em um estande, com teclado, controle Xbox e som |
 | Operação | Um visitante por vez; progresso pode ser resetado ao final |
 | Idioma | Português do Brasil |
 
@@ -40,7 +40,7 @@ O jogador explora uma sede em pixel art, conversa com especialistas, responde de
 2. **Errar sem punição:** resposta errada mostra a correta e uma dica; o jogador tenta de novo.
 3. **Recompensa visível:** o EPI aparece no personagem, no HUD e no cenário.
 4. **Leitura confortável:** resolução lógica 640×480 com renderização 2x, painéis de alto contraste e tipografia nítida.
-5. **Teclado apenas:** nenhum mouse necessário.
+5. **Teclado ou controle:** nenhum mouse necessário; teclado e controle Xbox Series cobrem todo o fluxo.
 6. **Conteúdo responsável:** resumos educativos com aviso para consultar a NR oficial e o SESMT.
 
 ---
@@ -53,8 +53,9 @@ O jogador explora uma sede em pixel art, conversa com especialistas, responde de
   - **NOVO JOGO:** inicia uma sessão limpa.
   - **CONTINUAR:** habilitado apenas quando há save; carrega progresso.
   - **COMO JOGAR:** abre um painel com missão, controles e dica.
-- Navegação por setas/WASD, confirmação por Espaço/Enter/Z.
+- Navegação por setas/WASD, analógico esquerdo ou D-pad; confirmação por Espaço/Enter/Z ou A.
 - Exibe indicador de save disponível e atalhos de tela cheia e som.
+- Controle Xbox: A confirma, B volta, Start abre o menu de pausa, X abre o manual e Y abre o inventário.
 - Identidade JAMSOFT em vermelho, preto e branco, com títulos em fonte de alta legibilidade.
 - Continua funcionando sem áudio ou `localStorage`.
 
@@ -72,7 +73,7 @@ O jogador explora uma sede em pixel art, conversa com especialistas, responde de
 - HUD superior com:
   - contador de proteção `n/10` e barra de progresso;
   - nome da sala atual, NR e indicador `FASE n/10`;
-  - lembretes de atalhos (`M`, `I`, `F`, `V`, movimento).
+  - lembretes de atalhos (`M`, `I`, `Start`, movimento).
 - HUD inferior com:
   - contador de EPIs;
   - 10 slots na ordem da cabeça aos pés;
@@ -101,8 +102,8 @@ O jogador explora uma sede em pixel art, conversa com especialistas, responde de
   - dica educativa;
   - explicação curta após o acerto.
 - Interações:
-  - `↑`/`↓` ou `1`–`4` selecionam;
-  - Espaço/Enter/Z confirma;
+  - `↑`/`↓`, analógico esquerdo, D-pad ou `1`–`4` selecionam;
+  - Espaço/Enter/Z ou A confirmam;
   - resposta errada não encerra: mostra a correta, permite abrir a dica e voltar;
   - resposta correta exibe o EPI conquistado e a explicação;
   - confirmação final entrega o item, libera a porta e volta à exploração.
@@ -138,26 +139,35 @@ O jogador explora uma sede em pixel art, conversa com especialistas, responde de
 
 ### F6 — Manual de NRs
 
-- Aberto por `M` durante a exploração de qualquer fase.
+- Aberto por `M` ou `X` durante a exploração de qualquer fase.
 - **12 cartas**: as 10 NRs dos desafios + NR-5 (CIPA) e NR-7 (PCMSO) como consulta.
-- Modo lista: duas páginas, 6 cartas por página, navegação por setas e `PageUp`/`PageDown`.
+- Modo lista: duas páginas, 6 cartas por página, navegação por setas, analógico, D-pad e `PageUp`/`PageDown`.
 - Modo detalhe: título, resumo, principais regras, vínculo com o EPI e status (`DESAFIO`, `EPI ✓`, `CONSULTA`).
 - Rodapé com fonte oficial e aviso educativo.
-- `Esc` volta; `M` fecha.
+- `Esc` ou B volta; `M` ou X fecha.
 
 ### F6.1 — Inventário e decoração
 
-- Aberto por `I` durante a exploração e fechado por `I`, `Esc` ou `Backspace`.
+- Aberto por `I` ou `Y` durante a exploração e fechado por `I`, `Y`, `Esc` ou `Backspace`.
 - Exibe quatro indicadores: tempo jogado, fase atual, fases concluídas e EPIs adquiridos.
 - Lista os 10 EPIs com ícone, nome e estado; itens ainda não conquistados aparecem bloqueados.
 - Oferece três itens cosméticos opcionais, sem efeito sobre a proteção ou o conteúdo educativo:
   - **Pin JAMSOFT**, disponível desde o início;
   - **Adesivo de Capacete**, liberado com o capacete;
   - **Faixa de Guardião**, liberada após cinco fases.
-- `↑`/`↓` navega, `Enter` equipa/remove a decoração selecionada e a última opção abre o Manual de NRs (`M` também abre).
+- `↑`/`↓` ou D-pad/analógico navegam, `Enter`/A equipa/remove a decoração selecionada e a última opção abre o Manual de NRs (`M`, `X` também abrem).
 - A prévia do personagem mostra EPIs e decoração equipados.
 - A decoração e o tempo jogado são persistidos no save.
 - Toda a leitura usa textos, não apenas cor, para indicar estado.
+
+### F6.2 — Menu de pausa
+
+- Aberto por `Start` ou `Esc` durante a exploração e fechado por `Start`, `Esc` ou B.
+- Reúne as opções **Continuar**, **Inventário**, **Manual de NRs**, **Como jogar** e **Menu principal**.
+- Navegação por setas/WASD, analógico esquerdo ou D-pad; confirmação por A/Espaço/Enter.
+- A opção **Menu principal** salva a sessão antes de voltar ao menu.
+- O tempo jogado não avança enquanto o menu de pausa está aberto.
+- O menu reutiliza a identidade JAMSOFT, com foco explícito e dicas de controle.
 
 ### F7 — Certificado
 
@@ -420,10 +430,10 @@ CERTIFICATE
 | RNF2 | Usar apenas HTML, CSS e JavaScript vanilla; nenhuma dependência de runtime. |
 | RNF3 | Não carregar imagens, fontes ou áudios externos; toda arte é procedural. |
 | RNF4 | Manter 60 fps com resolução lógica 640×480 e backing store 1280×960 em hardware de feira; quedas devem ser investigadas. |
-| RNF5 | Ser totalmente jogável por teclado, sem mouse. |
+| RNF5 | Ser totalmente jogável por teclado e por controle Xbox Series (Standard Gamepad), sem mouse. |
 | RNF6 | Escalar para telas de 1280×720 ou maiores sem cortar conteúdo. |
 | RNF7 | Exibir contraste legível e não depender apenas de cor para status. |
-| RNF8 | Tratar falhas de `localStorage`, áudio e fullscreen sem quebrar o jogo. |
+| RNF8 | Tratar falhas de `localStorage`, áudio, fullscreen e Gamepad API sem quebrar o jogo. |
 | RNF9 | Persistir progresso e preferência de som entre recarregamentos. |
 | RNF10 | Passar `npm test` sem erros antes de cada entrega. |
 | RNF11 | Não exibir erros no console durante o fluxo completo. |
@@ -454,6 +464,8 @@ CERTIFICATE
 | AC17 | `npm test` passa com todos os arquivos JS e o smoke test. |
 | AC18 | O conteúdo do manual e dos desafios mantém o aviso educativo. |
 | AC19 | `I` abre o inventário com tempo, progresso, EPIs, decoração e acesso ao manual; equipar/remover decoração atualiza sprite e save. |
+| AC20 | O controle Xbox navega em todos os menus, diálogos, desafios e certificado com A/B, Start, D-pad e analógico esquerdo, sem mouse. |
+| AC21 | `Start` abre o menu de pausa com Continuar, Inventário, Manual, Como jogar e Menu principal; B/Start fecha e a sessão é salva ao voltar ao menu principal. |
 
 ---
 
@@ -475,6 +487,7 @@ CERTIFICATE
 | --- | --- | --- |
 | Visitante não entende os controles | Sessão travada | “COMO JOGAR”, introdução e prompts contextuais |
 | Teclado do estande sem teclas ou layout diferente | Impossível jogar | Usar setas + WASD + Espaço; testar teclado no dia |
+| Controle não detectado ou mapeamento diferente | Impossível jogar no controle | Usar cabo/USB, pressionar um botão antes de jogar, manter teclado como fallback e validar o modelo no hardware da feira |
 | Navegador bloqueia áudio | Menos imersão | WebAudio com fallback silencioso; `V` visível |
 | Fullscreen bloqueado | Jogo menor | Escala CSS responsiva; `F` é opcional |
 | Texto pequeno no monitor | Leitura difícil | Canvas 640×480 com renderização 2x; fontes de alta legibilidade nos painéis |

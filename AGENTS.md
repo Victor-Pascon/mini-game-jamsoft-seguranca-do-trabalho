@@ -46,7 +46,7 @@ Um visitante novo consegue:
 1. **Não inventar NR.** Conteúdo técnico é revisado e tem aviso educativo.
 2. **Não adicionar assets externos.** Toda arte e áudio são procedurais.
 3. **Não quebrar a resolução.** O canvas é 640×480; a escala é responsabilidade do CSS.
-4. **Não exigir mouse.** Toda interação tem equivalente no teclado.
+4. **Não exigir mouse.** Toda interação tem equivalente no teclado e no controle Xbox.
 5. **Não esconder o feedback.** Acerto, erro, EPI e progresso precisam ser visíveis.
 6. **Não duplicar recompensa.** Um EPI é entregue uma única vez.
 7. **Não deixar estado órfão.** Toda transição tem retorno seguro (menu/explore).
@@ -114,7 +114,7 @@ Um visitante novo consegue:
 **Responsabilidades**
 
 - Loop com `requestAnimationFrame` e delta time limitado.
-- Input de teclado, `justPressed`, foco e blur.
+- Input de teclado e controle Xbox, `justPressed`, foco e blur.
 - Renderer canvas, câmera fixa, painéis, partículas, glow e scanlines.
 - Colisão com tiles, props e NPCs, resolução por eixo.
 - `SaveSystem`, `Sound` e `TextUtils`.
@@ -223,7 +223,7 @@ Um visitante novo consegue:
 - Executar o fluxo completo no navegador.
 - Verificar console, performance, save/load, áudio, fullscreen.
 - Validar conteúdo contra o manual e o aviso educativo.
-- Testar teclado, escala, tela cheia e operação de feira.
+- Testar teclado, controle Xbox, escala, tela cheia e operação de feira.
 - Registrar bugs com passos, evidência e severidade.
 - Bloquear release se houver falha crítica.
 - Atualizar `HARNESS_CHECKLIST.md`.

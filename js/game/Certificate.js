@@ -276,7 +276,7 @@ export class Certificate {
     if (this._showInput) {
       const blink = Math.sin(this._time * 6) > -0.2;
       if (blink) {
-        renderer.drawText('ESPAÇO para voltar ao início', 320, 456, {
+        renderer.drawText('A / ESPAÇO para voltar ao início', 320, 456, {
           color: COLORS.SAFETY_YELLOW,
           font: FONTS.PRIMARY,
           align: 'center',

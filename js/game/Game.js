@@ -14,6 +14,7 @@ import { Dialog } from './Dialog.js';
 import { Challenge } from './Challenge.js';
 import { NormManual } from './NormManual.js';
 import { Inventory } from './Inventory.js';
+import { PauseMenu } from './PauseMenu.js';
 import { Certificate } from './Certificate.js';
 import { drawProp, drawRoomLabels, getNearbyInteractiveProp } from './Props.js';
 import { drawIcon, drawOverlay } from './EquipmentRenderer.js';
@@ -44,6 +45,7 @@ export class Game {
 
     this._manual = new NormManual(this._sound);
     this._inventory = new Inventory(this._sound);
+    this._pause = new PauseMenu(this._sound);
     this._certificate = new Certificate();
     this._dialog = new Dialog();
     this._challenge = new Challenge(this._sound);
@@ -61,7 +63,7 @@ export class Game {
 
     this._showIntro = false;
     this._menuSelection = 0;
-    this._menuHelp = false;
+    this._helpOpen = false;
     this._toast = null;
     this._toastTimer = 0;
 
@@ -129,6 +131,8 @@ export class Game {
     this._certificate = new Certificate();
     this._manual = new NormManual(this._sound);
     this._inventory = new Inventory(this._sound);
+    this._pause = new PauseMenu(this._sound);
+    this._helpOpen = false;
 
     this._phaseIndex = 0;
     this._phaseSolved = false;
@@ -185,7 +189,7 @@ export class Game {
     this._showIntro = true;
     this._introDialog.startDialog(dialogs.intro, dialogs.introSpeaker);
     this._menuSelection = 0;
-    this._menuHelp = false;
+    this._helpOpen = false;
     this._sound.playStart();
   }
 
@@ -225,7 +229,7 @@ export class Game {
 
     this._syncNpcStates();
     this._menuSelection = 0;
-    this._menuHelp = false;
+    this._helpOpen = false;
 
     // Se o save foi feito imediatamente após o último EPI, retoma direto no
     // certificado em vez de deixar a jornada sem a recompensa final.
@@ -272,6 +276,12 @@ export class Game {
   }
 
   update(deltaTime) {
+    this._input.update();
+    this._updateFrame(deltaTime);
+    this._input.endFrame();
+  }
+
+  _updateFrame(deltaTime) {
     this._time += deltaTime;
     this._updateToast(deltaTime);
 
@@ -285,8 +295,20 @@ export class Game {
       this._showToast(muted ? 'Som desligado' : 'Som ligado', 1.6);
     }
 
-    if (!this._state.is(STATE.MENU)) {
+    if (!this._state.is(STATE.MENU) && !this._pause.isOpen() && !this._helpOpen) {
       this._playTime += deltaTime;
+    }
+
+    if (this._helpOpen) {
+      if (
+        this._input.confirmPressed() ||
+        this._input.isJustPressed('Escape') ||
+        this._input.isJustPressed('Start')
+      ) {
+        this._helpOpen = false;
+        this._sound.playSelect();
+      }
+      return;
     }
 
     if (this._state.is(STATE.MENU)) {
@@ -315,14 +337,6 @@ export class Game {
   }
 
   _updateMenu() {
-    if (this._menuHelp) {
-      if (this._input.confirmPressed() || this._input.isJustPressed('Escape')) {
-        this._menuHelp = false;
-        this._sound.playSelect();
-      }
-      return;
-    }
-
     if (this._input.isJustPressed('ArrowUp') || this._input.isJustPressed('KeyW')) {
       this._menuSelection = (this._menuSelection + 2) % 3;
       this._sound.playSelect();
@@ -344,13 +358,20 @@ export class Game {
           this._showToast('Nenhum progresso salvo. Comece um novo jogo.', 2.2);
         }
       } else {
-        this._menuHelp = true;
+        this._helpOpen = true;
         this._sound.playSelect();
       }
     }
   }
 
   _updateExplore(deltaTime) {
+    if (this._pause.isOpen()) {
+      this._pause.update(deltaTime, this._input);
+      const action = this._pause.consumeAction();
+      if (action) this._handlePauseAction(action);
+      return;
+    }
+
     if (this._manual.isOpen()) {
       this._manual.update(deltaTime, this._input);
       return;
@@ -365,6 +386,14 @@ export class Game {
         this._inventory.close();
         this._manual.open();
       }
+      return;
+    }
+
+    if (
+      this._input.isJustPressed('Start') ||
+      this._input.isJustPressed('Escape')
+    ) {
+      this._pause.open();
       return;
     }
 
@@ -417,6 +446,31 @@ export class Game {
 
     if (confirm && this._nearbyProp) {
       this._manual.open();
+    }
+  }
+
+  _handlePauseAction(action) {
+    if (action === 'inventory') {
+      this._inventory.open();
+      return;
+    }
+
+    if (action === 'manual') {
+      this._manual.open();
+      return;
+    }
+
+    if (action === 'help') {
+      this._helpOpen = true;
+      return;
+    }
+
+    if (action === 'menu') {
+      this._saveProgress();
+      this._pause.close();
+      this._helpOpen = false;
+      this._menuSelection = this._save.hasSave() ? 1 : 0;
+      this._state.setState(STATE.MENU);
     }
   }
 
@@ -607,7 +661,7 @@ export class Game {
     this._save.delete();
     this._resetWorld(false);
     this._menuSelection = 0;
-    this._menuHelp = false;
+    this._helpOpen = false;
     this._state.setState(STATE.MENU);
     this._sound.playSelect();
   }
@@ -649,7 +703,7 @@ export class Game {
   render() {
     if (this._state.is(STATE.MENU)) {
       this._renderMenu();
-      if (this._menuHelp) this._renderMenuHelp();
+      if (this._helpOpen) this._renderMenuHelp();
       this._renderToast(420);
       return;
     }
@@ -666,6 +720,17 @@ export class Game {
 
     this._renderWorld();
     this._renderer.drawVignette();
+
+    if (this._helpOpen) {
+      this._renderMenuHelp();
+      return;
+    }
+
+    if (this._pause.isOpen()) {
+      this._renderHud();
+      this._pause.render(this._renderer);
+      return;
+    }
 
     if (this._manual.isOpen()) {
       this._manual.render(this._renderer, this._equipment);
@@ -763,7 +828,7 @@ export class Game {
       shadow: false
     });
 
-    this._renderer.drawText('M NORMAS  •  I INV  •  F TELA', 624, 6, {
+    this._renderer.drawText('M NORMAS  •  I INV  •  START MENU', 624, 6, {
       color: COLORS.UI_TEXT_DIM,
       font: FONTS.TINY,
       align: 'right',
@@ -780,7 +845,7 @@ export class Game {
         shadow: false
       }
     );
-    this._renderer.drawText('WASD/Setas  •  ESPAÇO', 624, 34, {
+    this._renderer.drawText('WASD/Setas  •  A/ESPAÇO', 624, 34, {
       color: COLORS.UI_TEXT_DIM,
       font: FONTS.TINY,
       align: 'right',
@@ -843,12 +908,12 @@ export class Game {
         const npcDataInfo = getNpc(this._nearbyNpc.npcId);
         const already = npcDataInfo && this._equipment.has(npcDataInfo.equipmentId);
         const text = already
-          ? `ESPAÇO  Conversar com ${this._nearbyNpc.name}`
-          : `ESPAÇO  Desafio ${npcDataInfo?.norm || ''} com ${this._nearbyNpc.name}`;
+          ? `A / ESPAÇO  Conversar com ${this._nearbyNpc.name}`
+          : `A / ESPAÇO  Desafio ${npcDataInfo?.norm || ''} com ${this._nearbyNpc.name}`;
 
         this._renderPrompt(text);
       } else if (this._nearbyProp) {
-        this._renderPrompt('ESPAÇO  Abrir Mural de Normas');
+        this._renderPrompt('A / ESPAÇO  Abrir Mural de Normas');
       } else if (this._nearDoor) {
         this._renderPrompt(
           this._phaseSolved
@@ -1061,7 +1126,7 @@ export class Game {
 
     const blink = Math.sin(this._time * 4) > -0.2;
     if (blink) {
-      renderer.drawText('ESPAÇO / ENTER para selecionar', 320, 360, {
+      renderer.drawText('A / ESPAÇO / ENTER para selecionar', 320, 360, {
         color: COLORS.JAMSOFT_WHITE,
         font: FONTS.SMALL,
         align: 'center',
@@ -1069,7 +1134,7 @@ export class Game {
       });
     }
 
-    renderer.drawText('WASD / setas para navegar', 320, 380, {
+    renderer.drawText('WASD / setas / analógico / D-pad para navegar', 320, 380, {
       color: COLORS.JAMSOFT_SMOKE,
       font: FONTS.TINY,
       align: 'center',
@@ -1206,6 +1271,13 @@ export class Game {
       });
     });
 
+    renderer.drawText(dialogs.helpGamepad, 320, 388, {
+      color: COLORS.JAMSOFT_RED_LIGHT,
+      font: FONTS.TINY,
+      align: 'center',
+      shadow: false
+    });
+
     renderer.drawText(dialogs.helpFooter, 320, 404, {
       color: COLORS.JAMSOFT_SMOKE,
       font: FONTS.TINY,
@@ -1215,7 +1287,7 @@ export class Game {
 
     const blink = Math.sin(this._time * 5) > -0.2;
     if (blink) {
-      renderer.drawText('ESPAÇO ou ESC para voltar', 320, 432, {
+      renderer.drawText('A/ESPAÇO  •  B/ESC/START', 320, 432, {
         color: COLORS.JAMSOFT_WHITE,
         font: FONTS.PRIMARY,
         align: 'center',
