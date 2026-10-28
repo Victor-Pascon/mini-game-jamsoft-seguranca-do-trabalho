@@ -1,5 +1,6 @@
 import { Entity } from './Entity.js';
 import { COLORS, FONTS } from '../design-tokens/snes-theme.js';
+import { drawNpcSprite } from './CharacterRenderer.js';
 
 /**
  * NPC - especialista de segurança da JAMSOFT.
@@ -61,131 +62,116 @@ export class NPC extends Entity {
     return this._lightenColor(color, -percent);
   }
 
-  render(renderer) {
+  render(renderer, options = {}) {
     if (!this._visible) return;
 
-    const time = Date.now() / 1000;
-    const bob = Math.sin(time * 2 + this._phase) * 1;
+    const { nearby = false } = options;
+    const time = Date.now() / 1000 + this._phase;
+    const bob = Math.sin(time * 2) * 0.5;
     const y = this._y + bob;
-    const bodyColor = this._color;
-    const lightColor = this._lightenColor(bodyColor, 40);
-    const darkColor = this._darkenColor(bodyColor, 40);
+    const ground = this._y + this._height;
 
-    // Aura suave para chamar atenção em quem ainda tem desafio.
+    // Marcador de piso e aura de desafio.
+    renderer.drawRect(this._x + 3, ground - 3, this._width - 6, 3, 'rgba(0, 0, 0, 0.30)');
+    renderer.drawRect(this._x + 8, ground - 1, this._width - 16, 1, this._color);
     if (!this._completed) {
       renderer.drawGlow(
         this._x + this._width / 2,
-        y + this._height / 2,
-        27,
+        y + 4,
+        32,
         this._color,
-        0.08
+        nearby ? 0.16 : 0.075
       );
     }
 
-    // Sombra
-    renderer.drawRect(
-      this._x + 4,
-      this._y + this._height - 2,
-      this._width - 8,
-      4,
-      'rgba(0, 0, 0, 0.35)'
-    );
+    // Anel de interação quando o jogador está perto.
+    if (nearby) {
+      const pulse = 0.55 + 0.45 * Math.sin(time * 5);
+      const ringColor = `rgba(255, 193, 7, ${0.45 + pulse * 0.4})`;
+      for (let i = 0; i < 12; i++) {
+        if (i % 2 === 0) {
+          const angle = (i / 12) * Math.PI * 2;
+          renderer.drawRect(
+            this._x + this._width / 2 + Math.cos(angle) * 20 - 1,
+            ground - 5 + Math.sin(angle) * 6,
+            3,
+            2,
+            ringColor
+          );
+        }
+      }
+    }
 
-    // Cabeça
-    renderer.drawRect(
-      this._x + 3,
-      y + 2,
-      this._width - 6,
-      10,
-      bodyColor,
-      { border: true, borderColor: darkColor }
-    );
-
-    // Destaque no topo
-    renderer.drawRect(
-      this._x + 5,
-      y + 4,
-      this._width - 10,
-      3,
-      lightColor
-    );
-
-    // Olhos
-    const eyeY = y + 6;
-    renderer.drawRect(this._x + 6, eyeY, 5, 5, COLORS.SNES_WHITE);
-    renderer.drawRect(this._x + this._width - 11, eyeY, 5, 5, COLORS.SNES_WHITE);
-    renderer.drawRect(this._x + 8, eyeY + 1, 3, 3, COLORS.SNES_BLACK);
-    renderer.drawRect(this._x + this._width - 9, eyeY + 1, 3, 3, COLORS.SNES_BLACK);
-
-    // Corpo
-    renderer.drawRect(
-      this._x + 2,
-      y + 12,
-      this._width - 4,
-      12,
-      bodyColor,
-      { border: true, borderColor: darkColor }
-    );
-
-    // Gravata / detalhe de uniforme
-    renderer.drawRect(
-      this._x + this._width / 2 - 2,
-      y + 14,
-      4,
-      6,
-      darkColor
-    );
-
-    // Crachá de segurança
-    renderer.drawRect(this._x + 5, y + 16, 5, 4, '#ffffff');
-    renderer.drawRect(this._x + 6, y + 17, 3, 2, this._completed ? COLORS.SAFETY_GREEN : COLORS.SAFETY_ORANGE);
-
-    // Nome acima
-    renderer.drawText(
-      this._name.split(' ')[0],
-      this._x + this._width / 2,
-      this._y - 10,
+    drawNpcSprite(
+      renderer,
       {
+        x: this._x,
+        y,
+        width: this._width,
+        height: this._height,
+        npcId: this._npcId,
+        color: this._color
+      },
+      { time, direction: 'down' }
+    );
+
+    // Pin da NR no peito, alinhado ao uniforme.
+    if (this._norm) {
+      renderer.drawRect(this._x + 16, y + 9, 8, 6, '#f7f2e7');
+      renderer.drawRect(this._x + 17, y + 10, 6, 1, this._color);
+      renderer.drawRect(this._x + 17, y + 12, 4, 1, this._color);
+    }
+
+    // Nome em plaquinha escura, exibido quando o jogador está perto.
+    if (nearby) {
+      const firstName = this._name.split(' ')[0];
+      const plateW = Math.max(58, firstName.length * 6 + 20);
+      const plateX = this._x + this._width / 2 - plateW / 2;
+      const plateY = this._y - 23 + Math.sin(time * 2.2) * 1;
+      renderer.drawRect(plateX + 2, plateY + 2, plateW, 13, 'rgba(0, 0, 0, 0.42)');
+      renderer.drawRect(plateX, plateY, plateW, 13, 'rgba(5, 11, 18, 0.88)');
+      renderer.drawRect(plateX, plateY, 3, 13, this._color);
+      renderer.drawRect(plateX + 3, plateY, plateW - 3, 1, 'rgba(255, 255, 255, 0.18)');
+      renderer.drawText(firstName, this._x + this._width / 2, plateY + 3, {
         color: COLORS.UI_TEXT,
-        font: FONTS.SMALL,
+        font: '8px "Courier New", monospace',
         align: 'center',
         shadow: true
-      }
-    );
-
-    // Indicador de status: "?" pulsa enquanto o desafio está pendente.
-    const pulse = 0.65 + 0.35 * Math.sin(time * 4 + this._phase);
-    if (this._completed) {
-      renderer.drawRect(this._x + this._width - 2, this._y - 24, 12, 12, COLORS.SAFETY_GREEN_DARK);
-      renderer.drawRect(this._x + this._width, this._y - 22, 8, 8, COLORS.SAFETY_GREEN);
-      renderer.drawText('✓', this._x + this._width + 4, this._y - 23, {
-        color: '#ffffff',
-        font: '9px "Courier New", monospace',
-        align: 'center',
-        shadow: false
       });
-    } else {
-      renderer.drawRect(this._x + this._width - 2, this._y - 24, 12, 12, COLORS.SAFETY_YELLOW_DARK);
-      renderer.drawRect(this._x + this._width, this._y - 22, 8, 8, COLORS.SAFETY_YELLOW);
-      renderer.drawText('!', this._x + this._width + 4, this._y - 24, {
-        color: '#111111',
+    }
+
+    // Indicador de status: "!" pulsante ou check de concluído.
+    const statusX = this._x + this._width + 1;
+    const statusY = this._y + 2;
+    const pulse = 0.70 + 0.30 * Math.sin(time * 4);
+
+    if (this._completed) {
+      renderer.drawRect(statusX + 1, statusY + 2, 12, 12, 'rgba(0, 0, 0, 0.40)');
+      renderer.drawRect(statusX, statusY, 12, 12, COLORS.SAFETY_GREEN_DARK);
+      renderer.drawRect(statusX + 2, statusY + 2, 8, 8, COLORS.SAFETY_GREEN);
+      renderer.drawText('✓', statusX + 6, statusY - 1, {
+        color: '#ffffff',
         font: '10px "Courier New", monospace',
         align: 'center',
         shadow: false
       });
-      renderer.drawText('?', this._x + this._width / 2, this._y - 38, {
-        color: `rgba(255, 193, 7, ${pulse})`,
-        font: FONTS.SMALL,
+    } else {
+      renderer.drawRect(statusX + 1, statusY + 2, 12, 12, 'rgba(0, 0, 0, 0.40)');
+      renderer.drawRect(statusX, statusY, 12, 12, COLORS.SAFETY_YELLOW_DARK);
+      renderer.drawRect(statusX + 2, statusY + 2, 8, 8, COLORS.SAFETY_YELLOW);
+      renderer.drawText('!', statusX + 6, statusY - 1, {
+        color: '#111111',
+        font: '11px "Courier New", monospace',
         align: 'center',
-        shadow: true
+        shadow: false
       });
-    }
-
-    // Selo da NR no ombro
-    if (this._norm) {
-      renderer.drawRect(this._x + this._width - 10, y + 12, 8, 8, this._color);
-      renderer.drawRect(this._x + this._width - 9, y + 13, 6, 6, '#ffffff');
-      renderer.drawRect(this._x + this._width - 8, y + 14, 4, 4, this._color);
+      renderer.drawRect(
+        statusX - 2,
+        statusY - 2,
+        16,
+        16,
+        `rgba(255, 193, 7, ${0.06 + pulse * 0.08})`
+      );
     }
   }
 }

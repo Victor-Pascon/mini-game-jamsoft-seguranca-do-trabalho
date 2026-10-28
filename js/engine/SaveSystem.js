@@ -1,11 +1,12 @@
 /**
  * SaveSystem - persistência do progresso em localStorage.
- * Salva posição do jogador, EPIs conquistados e desafios concluídos.
+ * Salva posição do jogador, EPIs conquistados, desafios concluídos e a fase
+ * linear atual.
  */
 export class SaveSystem {
   constructor() {
     this._key = 'jamsoft_seguranca_save';
-    this._version = '2.0';
+    this._version = '3.0';
   }
 
   save(data) {
@@ -54,7 +55,7 @@ export class SaveSystem {
     }
   }
 
-  saveGame(player, equipmentIds = [], completedChallenges = []) {
+  saveGame(player, equipmentIds = [], completedChallenges = [], phase = 0) {
     const playerData = player && typeof player.getSaveData === 'function'
       ? player.getSaveData()
       : {
@@ -66,6 +67,7 @@ export class SaveSystem {
       player: playerData,
       equipment: Array.from(equipmentIds),
       completedChallenges: Array.from(completedChallenges),
+      phase: Number.isInteger(phase) ? phase : 0,
       saveDate: new Date().toLocaleString('pt-BR')
     });
   }
@@ -80,6 +82,7 @@ export class SaveSystem {
       completedChallenges: Array.isArray(data.completedChallenges)
         ? data.completedChallenges
         : [],
+      phase: Number.isInteger(data.phase) ? data.phase : null,
       saveDate: data.saveDate || null
     };
   }

@@ -213,122 +213,152 @@ export function drawOverlay(renderer, player, equipmentSet, bounce = 0, flash = 
   };
 
   const x = player.x;
-  const y = player.y + bounce;
+  const top = player.y + bounce - 6;
   const w = player.width;
-  const h = player.height;
+  const h = 30;
 
   // Colete refletivo
   if (has('colete')) {
     const vest = colorOf('colete', 'color', '#ff8f00');
     const vestLight = colorOf('colete', 'accent', '#ffe082');
-    renderer.drawRect(x + 1, y + 11, w - 2, 11, vest);
-    renderer.drawRect(x + 1, y + 13, w - 2, 2, COLORS.SAFETY_WHITE);
-    renderer.drawRect(x + 1, y + 17, w - 2, 2, COLORS.SAFETY_WHITE);
-    renderer.drawRect(x + 1, y + 21, w - 2, 1, shadeColor(vest, -35));
-    renderer.drawRect(x + 8, y + 11, 8, 3, '#1b2430');
-    // Pequeno logo JAMSOFT no peito.
-    renderer.drawRect(x + 10, y + 14, 4, 4, '#ffffff');
-    renderer.drawRect(x + 11, y + 15, 2, 2, COLORS.SAFETY_ORANGE);
+    renderer.drawRect(x + 3, top + 12, w - 6, 12, shadeColor(vest, -35));
+    renderer.drawRect(x + 4, top + 13, w - 8, 10, vest);
+    renderer.drawRect(x + 4, top + 13, 2, 10, vestLight);
+    renderer.drawRect(x + 4, top + 15, w - 8, 2, COLORS.SAFETY_WHITE);
+    renderer.drawRect(x + 4, top + 19, w - 8, 2, COLORS.SAFETY_WHITE);
+    renderer.drawRect(x + 5, top + 16, w - 10, 1, 'rgba(255, 255, 255, 0.35)');
+    renderer.drawRect(x + 10, top + 16, 5, 4, '#1b2430');
+    renderer.drawRect(x + 11, top + 17, 3, 2, COLORS.SAFETY_ORANGE);
+    renderer.drawRect(x + 3, top + 22, w - 6, 2, shadeColor(vest, -45));
   }
 
   // Cinto de segurança / harness
   if (has('cinto')) {
     const strap = '#263238';
-    renderer.drawRect(x + 6, y + 11, 2, 11, strap);
-    renderer.drawRect(x + 16, y + 11, 2, 11, strap);
-    renderer.drawRect(x + 6, y + 14, 10, 2, strap);
-    renderer.drawRect(x + 9, y + 14, 4, 3, COLORS.SAFETY_YELLOW);
-    renderer.drawRect(x + 5, y + 20, 5, 2, strap);
-    renderer.drawRect(x + 14, y + 20, 5, 2, strap);
+    const strapLight = '#455a64';
+    renderer.drawRect(x + 6, top + 12, 3, 12, strap);
+    renderer.drawRect(x + 15, top + 12, 3, 12, strap);
+    renderer.drawRect(x + 7, top + 13, 1, 9, strapLight);
+    renderer.drawRect(x + 16, top + 13, 1, 9, strapLight);
+    renderer.drawRect(x + 6, top + 16, 12, 3, strap);
+    renderer.drawRect(x + 9, top + 16, 4, 4, COLORS.SAFETY_YELLOW);
+    renderer.drawRect(x + 10, top + 17, 2, 2, '#263238');
+    renderer.drawRect(x + 4, top + 22, 5, 3, strap);
+    renderer.drawRect(x + 15, top + 22, 5, 3, strap);
+    renderer.drawRect(x + 5, top + 22, 3, 1, strapLight);
+    renderer.drawRect(x + 16, top + 22, 3, 1, strapLight);
   }
 
   // Capacete
   if (has('capacete')) {
     const helmet = colorOf('capacete', 'color', '#ffc107');
     const helmetLight = colorOf('capacete', 'accent', '#ffe082');
-    renderer.drawRect(x + 2, y - 2, 20, 6, helmet);
-    renderer.drawRect(x + 4, y - 3, 16, 2, helmetLight);
-    renderer.drawRect(x + 0, y + 3, 24, 3, shadeColor(helmet, -25));
-    renderer.drawRect(x + 1, y + 3, 22, 1, helmet);
-    renderer.drawRect(x + 9, y - 2, 4, 5, '#ffffff');
-    renderer.drawRect(x + 10, y - 1, 2, 3, COLORS.SAFETY_ORANGE);
-    renderer.drawRect(x + 3, y + 5, 2, 2, '#263238');
-    renderer.drawRect(x + 19, y + 5, 2, 2, '#263238');
+    const helmetDark = shadeColor(helmet, -32);
+    renderer.drawRect(x + 4, top - 1, 16, 7, helmetDark);
+    renderer.drawRect(x + 5, top - 2, 14, 6, helmet);
+    renderer.drawRect(x + 7, top - 1, 10, 2, helmetLight);
+    renderer.drawRect(x + 2, top + 4, 20, 3, helmetDark);
+    renderer.drawRect(x + 3, top + 4, 18, 1, helmet);
+    renderer.drawRect(x + 10, top - 2, 4, 6, '#ffffff');
+    renderer.drawRect(x + 11, top - 1, 2, 4, COLORS.SAFETY_ORANGE);
+    renderer.drawRect(x + 5, top + 5, 2, 2, '#263238');
+    renderer.drawRect(x + 17, top + 5, 2, 2, '#263238');
+    renderer.drawRect(x + 4, top - 1, 1, 3, 'rgba(255, 255, 255, 0.45)');
   }
 
   // Protetor auricular
   if (has('protetor')) {
     const cup = colorOf('protetor', 'color', '#ff7043');
     const cupLight = colorOf('protetor', 'accent', '#ffab91');
-    renderer.drawRect(x + 2, y + 1, 20, 2, '#263238');
-    renderer.drawRect(x - 2, y + 3, 5, 8, cup);
-    renderer.drawRect(x + 21, y + 3, 5, 8, cup);
-    renderer.drawRect(x - 1, y + 4, 2, 5, cupLight);
-    renderer.drawRect(x + 22, y + 4, 2, 5, cupLight);
-    renderer.drawRect(x - 2, y + 3, 5, 1, shadeColor(cup, -35));
-    renderer.drawRect(x + 21, y + 3, 5, 1, shadeColor(cup, -35));
+    const cupDark = shadeColor(cup, -35);
+    renderer.drawRect(x + 3, top + 3, 18, 2, '#263238');
+    renderer.drawRect(x + 4, top + 3, 16, 1, '#546e7a');
+    renderer.drawRect(x - 2, top + 4, 5, 9, cupDark);
+    renderer.drawRect(x + 21, top + 4, 5, 9, cupDark);
+    renderer.drawRect(x - 1, top + 5, 4, 7, cup);
+    renderer.drawRect(x + 21, top + 5, 4, 7, cup);
+    renderer.drawRect(x, top + 6, 2, 4, cupLight);
+    renderer.drawRect(x + 22, top + 6, 2, 4, cupLight);
+    renderer.drawRect(x - 1, top + 11, 4, 2, cupDark);
+    renderer.drawRect(x + 21, top + 11, 4, 2, cupDark);
   }
 
   // Óculos de proteção
   if (has('oculos')) {
     const lens = colorOf('oculos', 'color', '#4dd0e1');
-    renderer.drawRect(x + 1, y + 6, 2, 4, '#263238');
-    renderer.drawRect(x + 21, y + 6, 2, 4, '#263238');
-    renderer.drawRect(x + 3, y + 5, 18, 6, '#263238');
-    renderer.drawRect(x + 4, y + 6, 7, 4, lens);
-    renderer.drawRect(x + 13, y + 6, 7, 4, lens);
-    renderer.drawRect(x + 5, y + 6, 2, 2, '#ffffff');
-    renderer.drawRect(x + 14, y + 6, 2, 2, '#ffffff');
-    renderer.drawRect(x + 11, y + 7, 2, 2, '#263238');
+    const lensLight = colorOf('oculos', 'accent', '#b2ebf2');
+    renderer.drawRect(x + 1, top + 6, 2, 5, '#263238');
+    renderer.drawRect(x + 21, top + 6, 2, 5, '#263238');
+    renderer.drawRect(x + 2, top + 5, 20, 7, '#263238');
+    renderer.drawRect(x + 3, top + 6, 8, 5, lens);
+    renderer.drawRect(x + 13, top + 6, 8, 5, lens);
+    renderer.drawRect(x + 4, top + 6, 6, 2, lensLight);
+    renderer.drawRect(x + 14, top + 6, 6, 2, lensLight);
+    renderer.drawRect(x + 4, top + 9, 6, 1, shadeColor(lens, -25));
+    renderer.drawRect(x + 14, top + 9, 6, 1, shadeColor(lens, -25));
+    renderer.drawRect(x + 11, top + 7, 2, 2, '#263238');
+    renderer.drawRect(x + 4, top + 6, 2, 1, '#ffffff');
+    renderer.drawRect(x + 14, top + 6, 2, 1, '#ffffff');
   }
 
   // Máscara de fuga / respirador
   if (has('mascara')) {
     const mask = colorOf('mascara', 'color', '#eceff1');
     const filter = colorOf('mascara', 'accent', '#90a4ae');
-    renderer.drawRect(x + 3, y + 9, 3, 2, '#37474f');
-    renderer.drawRect(x + 18, y + 9, 3, 2, '#37474f');
-    renderer.drawRect(x + 6, y + 9, 12, 7, mask);
-    renderer.drawRect(x + 7, y + 8, 10, 2, '#ffffff');
-    renderer.drawRect(x + 8, y + 11, 8, 3, filter);
-    renderer.drawRect(x + 9, y + 11, 3, 1, '#cfd8dc');
-    renderer.drawRect(x + 10, y + 14, 4, 1, '#ffffff');
+    renderer.drawRect(x + 3, top + 9, 3, 3, '#37474f');
+    renderer.drawRect(x + 18, top + 9, 3, 3, '#37474f');
+    renderer.drawRect(x + 6, top + 8, 12, 8, shadeColor(mask, -35));
+    renderer.drawRect(x + 7, top + 9, 10, 6, mask);
+    renderer.drawRect(x + 8, top + 8, 8, 2, '#ffffff');
+    renderer.drawRect(x + 8, top + 11, 8, 3, filter);
+    renderer.drawRect(x + 9, top + 11, 4, 1, '#cfd8dc');
+    renderer.drawRect(x + 9, top + 14, 6, 1, '#ffffff');
+    renderer.drawRect(x + 10, top + 16, 4, 1, '#b0bec5');
   }
 
   // Luvas
   if (has('luvas')) {
     const glove = colorOf('luvas', 'color', '#3949ab');
     const gloveLight = colorOf('luvas', 'accent', '#9fa8da');
-    renderer.drawRect(x - 2, y + 13, 5, 7, glove);
-    renderer.drawRect(x + 21, y + 13, 5, 7, glove);
-    renderer.drawRect(x - 1, y + 12, 4, 2, COLORS.SAFETY_YELLOW);
-    renderer.drawRect(x + 21, y + 12, 4, 2, COLORS.SAFETY_YELLOW);
-    renderer.drawRect(x - 1, y + 15, 2, 3, gloveLight);
-    renderer.drawRect(x + 22, y + 15, 2, 3, gloveLight);
+    renderer.drawRect(x - 2, top + 20, 5, 6, shadeColor(glove, -35));
+    renderer.drawRect(x + 21, top + 20, 5, 6, shadeColor(glove, -35));
+    renderer.drawRect(x - 1, top + 21, 4, 5, glove);
+    renderer.drawRect(x + 21, top + 21, 4, 5, glove);
+    renderer.drawRect(x - 1, top + 20, 4, 2, COLORS.SAFETY_YELLOW);
+    renderer.drawRect(x + 21, top + 20, 4, 2, COLORS.SAFETY_YELLOW);
+    renderer.drawRect(x - 1, top + 22, 2, 2, gloveLight);
+    renderer.drawRect(x + 22, top + 22, 2, 2, gloveLight);
+    renderer.drawRect(x, top + 24, 3, 1, gloveLight);
+    renderer.drawRect(x + 21, top + 24, 3, 1, gloveLight);
   }
 
   // Botas
   if (has('botas')) {
     const boot = colorOf('botas', 'color', '#6d4c41');
-    renderer.drawRect(x + 2, y + 19, 7, 5, boot);
-    renderer.drawRect(x + 15, y + 19, 7, 5, boot);
-    renderer.drawRect(x + 1, y + 23, 8, 2, '#263238');
-    renderer.drawRect(x + 14, y + 23, 8, 2, '#263238');
-    renderer.drawRect(x + 3, y + 20, 5, 2, '#90a4ae');
-    renderer.drawRect(x + 16, y + 20, 5, 2, '#90a4ae');
-    renderer.drawRect(x + 4, y + 19, 3, 1, colorOf('botas', 'accent', '#bcaaa4'));
-    renderer.drawRect(x + 17, y + 19, 3, 1, colorOf('botas', 'accent', '#bcaaa4'));
+    const bootLight = colorOf('botas', 'accent', '#bcaaa4');
+    renderer.drawRect(x + 3, top + 26, 8, 5, shadeColor(boot, -35));
+    renderer.drawRect(x + 13, top + 26, 8, 5, shadeColor(boot, -35));
+    renderer.drawRect(x + 4, top + 26, 6, 4, boot);
+    renderer.drawRect(x + 14, top + 26, 6, 4, boot);
+    renderer.drawRect(x + 3, top + 30, 8, 2, '#263238');
+    renderer.drawRect(x + 13, top + 30, 8, 2, '#263238');
+    renderer.drawRect(x + 4, top + 27, 5, 1, bootLight);
+    renderer.drawRect(x + 14, top + 27, 5, 1, bootLight);
+    renderer.drawRect(x + 5, top + 29, 4, 1, '#263238');
+    renderer.drawRect(x + 15, top + 29, 4, 1, '#263238');
   }
 
   // Prancheta do PGR na mão esquerda
   if (has('prancheta')) {
     const board = colorOf('prancheta', 'color', '#1565c0');
-    renderer.drawRect(x - 5, y + 13, 7, 10, board);
-    renderer.drawRect(x - 4, y + 14, 5, 8, '#ffffff');
-    renderer.drawRect(x - 4, y + 12, 5, 2, '#90a4ae');
-    renderer.drawRect(x - 3, y + 16, 3, 1, '#1565c0');
-    renderer.drawRect(x - 3, y + 18, 3, 1, '#1565c0');
-    renderer.drawRect(x - 3, y + 20, 2, 1, '#1565c0');
+    renderer.drawRect(x - 6, top + 16, 8, 11, shadeColor(board, -35));
+    renderer.drawRect(x - 5, top + 17, 7, 10, board);
+    renderer.drawRect(x - 4, top + 18, 5, 8, '#ffffff');
+    renderer.drawRect(x - 4, top + 16, 5, 2, '#90a4ae');
+    renderer.drawRect(x - 3, top + 20, 3, 1, '#1565c0');
+    renderer.drawRect(x - 3, top + 22, 3, 1, '#1565c0');
+    renderer.drawRect(x - 3, top + 24, 2, 1, '#1565c0');
+    renderer.drawRect(x - 4, top + 18, 1, 6, 'rgba(255, 255, 255, 0.40)');
   }
 
   // Brilho de "novo EPI" ao redor do sprite.
@@ -336,15 +366,15 @@ export function drawOverlay(renderer, player, equipmentSet, bounce = 0, flash = 
     const pulse = 0.5 + 0.5 * Math.sin(flash * Math.PI * 8);
     const alpha = Math.min(1, flash * 1.6) * (0.45 + pulse * 0.4);
     const glow = `rgba(255, 215, 0, ${alpha})`;
-    renderer.drawRect(x - 2, y - 4, w + 4, 2, glow);
-    renderer.drawRect(x - 2, y + h + 1, w + 4, 2, glow);
-    renderer.drawRect(x - 3, y - 2, 2, h + 4, glow);
-    renderer.drawRect(x + w + 1, y - 2, 2, h + 4, glow);
+    renderer.drawRect(x - 2, top - 4, w + 4, 2, glow);
+    renderer.drawRect(x - 2, top + h + 1, w + 4, 2, glow);
+    renderer.drawRect(x - 3, top - 2, 2, h + 4, glow);
+    renderer.drawRect(x + w + 1, top - 2, 2, h + 4, glow);
 
     const sparkle = `rgba(255, 255, 255, ${alpha})`;
     const points = [
-      [x - 6, y + 2], [x + w + 4, y + 6],
-      [x - 4, y + h - 4], [x + w + 2, y + h - 2]
+      [x - 6, top + 2], [x + w + 4, top + 6],
+      [x - 4, top + h - 4], [x + w + 2, top + h - 2]
     ];
     for (const [sx, sy] of points) {
       renderer.drawRect(sx, sy, 3, 3, sparkle);

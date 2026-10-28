@@ -119,59 +119,86 @@ const props = [
   { id: 'epi_shelf_1', type: 'shelf', x: 40, y: 48, w: 30, h: 22, color: '#8d6e63' },
   { id: 'epi_shelf_2', type: 'shelf', x: 122, y: 48, w: 30, h: 22, color: '#8d6e63' },
   { id: 'epi_sign', type: 'sign', x: 40, y: 100, w: 18, h: 18, color: '#ffc107' },
+  { id: 'epi_rack', type: 'helmetRack', x: 40, y: 76, w: 22, h: 18 },
+  { id: 'epi_locker', type: 'locker', x: 128, y: 86, w: 24, h: 30, color: '#607d8b' },
 
   // NR-1 — SESMT / PGR
   { id: 'pgr_board', type: 'board', x: 230, y: 38, w: 60, h: 22, color: '#42a5f5' },
   { id: 'pgr_desk', type: 'desk', x: 236, y: 100, w: 72, h: 16, color: '#5d4037' },
   { id: 'pgr_plant', type: 'plant', x: 300, y: 108, w: 14, h: 18 },
+  { id: 'pgr_cabinet', type: 'cabinet', x: 298, y: 42, w: 18, h: 28, color: '#90a4ae' },
+  { id: 'pgr_printer', type: 'printer', x: 292, y: 94, w: 15, h: 12 },
 
   // NR-23 — Brigada
   { id: 'brigada_ext', type: 'extinguisher', x: 364, y: 48, w: 12, h: 24, color: '#e53935' },
   { id: 'brigada_hose', type: 'hosebox', x: 420, y: 48, w: 20, h: 20, color: '#c62828' },
+  { id: 'brigada_alarm', type: 'fireAlarm', x: 432, y: 84, w: 12, h: 16 },
 
   // NR-10 — Elétrica
   { id: 'eletrica_panel', type: 'panel', x: 516, y: 42, w: 28, h: 24, color: '#f9a825' },
   { id: 'eletrica_sign', type: 'sign', x: 582, y: 48, w: 18, h: 18, color: '#ffc107', label: 'ALTA TENSÃO' },
+  { id: 'eletrica_reel', type: 'cableReel', x: 520, y: 92, w: 20, h: 18 },
+  { id: 'eletrica_barrier', type: 'barrier', x: 568, y: 98, w: 28, h: 14 },
 
   // NR-15 — Ruído
   { id: 'ruido_machine', type: 'noise', x: 40, y: 204, w: 32, h: 28, color: '#78909c' },
   { id: 'ruido_sign', type: 'sign', x: 124, y: 204, w: 18, h: 18, color: '#ffc107', label: 'RUÍDO' },
+  { id: 'ruido_panel', type: 'acousticPanel', x: 40, y: 244, w: 24, h: 22 },
+  { id: 'ruido_meter', type: 'soundMeter', x: 122, y: 244, w: 14, h: 20 },
 
   // NR-17 — Ergonomia
   { id: 'ergonomia_desk', type: 'desk', x: 228, y: 200, w: 84, h: 16, color: '#5d4037' },
   { id: 'ergonomia_monitor', type: 'monitor', x: 250, y: 188, w: 20, h: 13 },
   { id: 'ergonomia_chair', type: 'chair', x: 238, y: 220, w: 20, h: 24 },
   { id: 'ergonomia_plant', type: 'plant', x: 300, y: 260, w: 14, h: 18 },
+  { id: 'ergonomia_cabinet', type: 'cabinet', x: 230, y: 252, w: 18, h: 28, color: '#90a4ae' },
+  { id: 'ergonomia_printer', type: 'printer', x: 292, y: 190, w: 15, h: 12 },
 
   // NR-12 — Máquinas
   { id: 'maquinas_machine', type: 'machine', x: 356, y: 198, w: 28, h: 24, color: '#c62828' },
   { id: 'maquinas_conveyor', type: 'conveyor', x: 392, y: 206, w: 44, h: 10 },
   { id: 'maquinas_sign', type: 'sign', x: 424, y: 232, w: 16, h: 16, color: '#ffc107' },
+  { id: 'maquinas_fence', type: 'safetyFence', x: 356, y: 256, w: 52, h: 10 },
+  { id: 'maquinas_cart', type: 'toolcart', x: 418, y: 254, w: 18, h: 16 },
 
   // NR-11 — Logística
   { id: 'logistica_pallet', type: 'pallet', x: 520, y: 200, w: 30, h: 20 },
   { id: 'logistica_boxes', type: 'boxes', x: 556, y: 200, w: 20, h: 20 },
   { id: 'logistica_sign', type: 'sign', x: 584, y: 240, w: 16, h: 16, color: '#ffc107' },
+  { id: 'logistica_tote', type: 'tote', x: 584, y: 204, w: 14, h: 12 },
+  { id: 'logistica_forklift', type: 'forklift', x: 528, y: 256, w: 36, h: 26 },
 
   // NR-26 — Sinalização
   { id: 'sinalizacao_cone_1', type: 'cone', x: 44, y: 360, w: 10, h: 18 },
   { id: 'sinalizacao_sign', type: 'sign', x: 60, y: 358, w: 22, h: 20, color: '#26a69a' },
   { id: 'sinalizacao_cone_2', type: 'cone', x: 130, y: 360, w: 10, h: 18 },
+  { id: 'sinalizacao_barrier', type: 'barrier', x: 110, y: 414, w: 30, h: 12 },
+  { id: 'sinalizacao_trash', type: 'trash', x: 142, y: 418, w: 10, h: 14 },
 
   // NR-35 — Altura
   { id: 'altura_scaffold', type: 'scaffold', x: 230, y: 356, w: 26, h: 36, color: '#90a4ae' },
   { id: 'altura_anchor', type: 'anchor', x: 300, y: 360, w: 14, h: 14 },
   { id: 'altura_sign', type: 'sign', x: 296, y: 410, w: 16, h: 16, color: '#ffc107' },
+  { id: 'altura_rack', type: 'harnessRack', x: 230, y: 410, w: 24, h: 18 },
+  { id: 'altura_barrier', type: 'barrier', x: 290, y: 414, w: 24, h: 12 },
 
   // Mural e auditório
   { id: 'mural_board', type: 'mural', x: 360, y: 366, w: 80, h: 52, color: '#ec407a', interactive: true },
   { id: 'mural_bench', type: 'bench', x: 366, y: 430, w: 68, h: 10 },
+  { id: 'mural_plant', type: 'plant', x: 352, y: 424, w: 14, h: 18 },
+  { id: 'mural_trash', type: 'trash', x: 438, y: 426, w: 10, h: 14 },
   { id: 'auditorio_stage', type: 'stage', x: 516, y: 360, w: 76, h: 22, color: '#26a69a' },
   { id: 'auditorio_podium', type: 'podium', x: 548, y: 390, w: 14, h: 14 },
+  { id: 'auditorio_speaker', type: 'speaker', x: 518, y: 402, w: 12, h: 18 },
+  { id: 'auditorio_chair_1', type: 'chair', x: 534, y: 416, w: 18, h: 22 },
+  { id: 'auditorio_chair_2', type: 'chair', x: 560, y: 416, w: 18, h: 22 },
 
   // Corredores
   { id: 'hall_plant', type: 'plant', x: 170, y: 150, w: 14, h: 18 },
-  { id: 'hall_water', type: 'watercooler', x: 470, y: 150, w: 16, h: 24 }
+  { id: 'hall_water', type: 'watercooler', x: 470, y: 150, w: 16, h: 24 },
+  { id: 'hall_bench', type: 'bench', x: 286, y: 146, w: 68, h: 10 },
+  { id: 'hall_plant_2', type: 'plant', x: 172, y: 306, w: 14, h: 18 },
+  { id: 'hall_trash', type: 'trash', x: 466, y: 310, w: 10, h: 14 }
 ];
 
 function buildMap() {

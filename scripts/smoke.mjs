@@ -7,11 +7,13 @@ import { challenges, CHALLENGE_BY_NPC } from '../js/data/challenges.js';
 import { norms, NORM_BY_NR } from '../js/data/norms.js';
 import { npcs } from '../js/data/npcs.js';
 import { safetyMap, TILE_TYPES, getRoomAt } from '../js/data/maps.js';
+import { PHASES, getPhaseMap } from '../js/data/phaseMaps.js';
 
 import { EquipmentSystem } from '../js/game/EquipmentSystem.js';
 import { Challenge } from '../js/game/Challenge.js';
 import { Dialog } from '../js/game/Dialog.js';
 import { NormManual } from '../js/game/NormManual.js';
+import { SaveSystem } from '../js/engine/SaveSystem.js';
 
 const failures = [];
 
@@ -145,6 +147,86 @@ for (const prop of safetyMap.props) {
 }
 
 // ---------------------------------------------------------------------------
+// Fases lineares
+// ---------------------------------------------------------------------------
+check(PHASES.length === 10, 'Existem exatamente 10 fases lineares');
+check(new Set(PHASES.map((phase) => phase.id)).size === PHASES.length, 'IDs de fases são únicos');
+check(
+  new Set(PHASES.map((phase) => phase.equipmentId)).size === PHASES.length,
+  'Cada fase entrega um EPI diferente'
+);
+
+for (let index = 0; index < PHASES.length; index++) {
+  const phase = PHASES[index];
+  const map = getPhaseMap(index);
+
+  check(Boolean(phase.normData), `${phase.id} tem dados de NR`);
+  check(Boolean(EQUIPMENT_BY_ID[phase.equipmentId]), `${phase.id} entrega EPI conhecido`);
+  check(Boolean(CHALLENGE_BY_NPC[phase.npcId]), `${phase.id} tem desafio correspondente`);
+  check(npcs.some((npc) => npc.id === phase.npcId), `${phase.id} tem especialista válido`);
+
+  check(Boolean(map), `${phase.id} gera mapa`);
+  check(map.width === 20 && map.height === 15, `${phase.id} tem 20x15 tiles`);
+  check(map.phase === true, `${phase.id} é marcado como fase`);
+  check(map.roomDefs.length === 1, `${phase.id} tem uma sala temática`);
+  check(map.roomDefs[0].norm === phase.norm, `${phase.id} exibe a NR correta`);
+  check(
+    map.props.some((prop) => prop.type === 'normPoster'),
+    `${phase.id} decora a sala com pôster de regras`
+  );
+
+  const startTileX = Math.floor(map.playerStart.x / map.tileSize);
+  const startTileY = Math.floor(map.playerStart.y / map.tileSize);
+  const startTile = map.tiles[startTileY * map.width + startTileX];
+  check(!map.collisionTiles.includes(startTile), `${phase.id} começa com jogador em piso livre`);
+
+  const npcTileX = Math.floor(map.npcSpawn.x / map.tileSize);
+  const npcTileY = Math.floor(map.npcSpawn.y / map.tileSize);
+  const npcTile = map.tiles[npcTileY * map.width + npcTileX];
+  check(!map.collisionTiles.includes(npcTile), `${phase.id} posiciona o especialista em piso livre`);
+
+  const exitTileX = Math.floor(map.exit.x / map.tileSize);
+  const exitTileY = Math.floor(map.exit.y / map.tileSize);
+  check(
+    map.tiles[exitTileY * map.width + exitTileX] === TILE_TYPES.DOOR,
+    `${phase.id} tem porta de saída no mapa`
+  );
+
+  for (const prop of map.props) {
+    check(
+      prop.x >= 0 && prop.y >= 0 && prop.x + prop.w <= 640 && prop.y + prop.h <= 480,
+      `${phase.id}: prop ${prop.id} está dentro do canvas`
+    );
+  }
+
+  const reservedZones = [
+    { name: 'pôster de regras', x: 180, y: 84, w: 280, h: 88 },
+    { name: 'moldura e placa da porta', x: map.exit.x - 28, y: map.exit.y - 34, w: map.exit.w + 60, h: map.exit.h + 42 },
+    { name: 'especialista', x: 295, y: 188, w: 50, h: 48 },
+    { name: 'início do jogador', x: 300, y: 348, w: 40, h: 40 }
+  ];
+
+  const layoutViolations = [];
+  for (const prop of map.props) {
+    for (const zone of reservedZones) {
+      if (prop.type === 'normPoster' && zone.name === 'pôster de regras') continue;
+      const overlaps =
+        prop.x < zone.x + zone.w &&
+        prop.x + prop.w > zone.x &&
+        prop.y < zone.y + zone.h &&
+        prop.y + prop.h > zone.y;
+      if (overlaps) layoutViolations.push(`${prop.id} invade ${zone.name}`);
+    }
+  }
+  check(
+    layoutViolations.length === 0,
+    `${phase.id} mantém pôster, porta, especialista e início do jogador livres${
+      layoutViolations.length ? `: ${layoutViolations.join('; ')}` : ''
+    }`
+  );
+}
+
+// ---------------------------------------------------------------------------
 // Progressão
 // ---------------------------------------------------------------------------
 const equipment = new EquipmentSystem();
@@ -206,6 +288,26 @@ manual.update(0.016, new FakeInput(['Enter']));
 manual.update(0.016, new FakeInput(['Escape']));
 manual.update(0.016, new FakeInput(['KeyM']));
 check(!manual.isOpen(), 'Manual fecha com M');
+
+// ---------------------------------------------------------------------------
+// Save da fase
+// ---------------------------------------------------------------------------
+const storage = new Map();
+globalThis.localStorage = {
+  getItem: (key) => (storage.has(key) ? storage.get(key) : null),
+  setItem: (key, value) => storage.set(key, String(value)),
+  removeItem: (key) => storage.delete(key)
+};
+const saveSystem = new SaveSystem();
+saveSystem.saveGame({ x: 308, y: 356 }, ['capacete'], ['challenge_nr6'], 1);
+const loadedSave = saveSystem.loadGame();
+check(loadedSave?.phase === 1, 'Save persiste a fase atual');
+check(loadedSave?.equipment?.includes('capacete'), 'Save persiste os EPIs da fase');
+check(
+  loadedSave?.completedChallenges?.includes('challenge_nr6'),
+  'Save persiste os desafios concluídos'
+);
+delete globalThis.localStorage;
 
 // ---------------------------------------------------------------------------
 // Resultado

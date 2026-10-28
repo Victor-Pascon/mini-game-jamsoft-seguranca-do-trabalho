@@ -2,6 +2,7 @@ import { Entity } from './Entity.js';
 import { Collision } from '../engine/Collision.js';
 import { COLORS, FONTS } from '../design-tokens/snes-theme.js';
 import { drawOverlay } from './EquipmentRenderer.js';
+import { drawPlayerSprite } from './CharacterRenderer.js';
 
 /**
  * Jogador - colaborador da JAMSOFT que conquista EPIs ao longo da jornada.
@@ -103,114 +104,26 @@ export class Player extends Entity {
   render(renderer) {
     if (!this._visible) return;
 
-    const bounce = this._isMoving ? Math.sin(this._animFrame * 0.8) * 2 : 0;
-
-    // Sombra
-    renderer.drawRect(
-      this._x + 4,
-      this._y + this._height - 2,
-      this._width - 8,
-      4,
-      'rgba(0, 0, 0, 0.35)'
-    );
+    const time = this._labelTimer;
+    const bounce = this._isMoving ? Math.sin((this._animFrame / 4) * Math.PI * 2) * 1 : 0;
 
     // Aura dourada quando todos os EPIs foram conquistados.
     if (this._equipment.size >= 10) {
       renderer.drawGlow(
         this._x + this._width / 2,
-        this._y + this._height / 2 + bounce,
-        34,
+        this._y + 8,
+        38,
         '#ffd700',
-        0.14
+        0.16
       );
     }
 
-    const bodyColor = this._color;
-    const lightColor = this._lightenColor(bodyColor, 40);
-    const darkColor = this._darkenColor(bodyColor, 40);
-
-    // Cabeça
-    renderer.drawRect(
-      this._x + 4,
-      this._y + 2 + bounce,
-      this._width - 8,
-      10,
-      bodyColor,
-      { border: true, borderColor: darkColor }
-    );
-
-    // Destaque no topo da cabeça
-    renderer.drawRect(
-      this._x + 6,
-      this._y + 4 + bounce,
-      this._width - 12,
-      3,
-      lightColor
-    );
-
-    // Olhos
-    const eyeY = this._y + 6 + bounce;
-    let eyeOffsetX = 0;
-    if (this._direction === 'left') eyeOffsetX = -2;
-    if (this._direction === 'right') eyeOffsetX = 2;
-
-    renderer.drawRect(this._x + 7 + eyeOffsetX, eyeY, 4, 4, COLORS.SNES_WHITE);
-    renderer.drawRect(this._x + this._width - 11 + eyeOffsetX, eyeY, 4, 4, COLORS.SNES_WHITE);
-    renderer.drawRect(this._x + 9 + eyeOffsetX, eyeY + 1, 2, 2, COLORS.SNES_BLACK);
-    renderer.drawRect(this._x + this._width - 9 + eyeOffsetX, eyeY + 1, 2, 2, COLORS.SNES_BLACK);
-
-    // Corpo
-    renderer.drawRect(
-      this._x + 2,
-      this._y + 12 + bounce,
-      this._width - 4,
-      10,
-      bodyColor,
-      { border: true, borderColor: darkColor }
-    );
-
-    // Detalhe da roupa
-    renderer.drawRect(
-      this._x + 6,
-      this._y + 14 + bounce,
-      this._width - 12,
-      2,
-      darkColor
-    );
-
-    // Pés (animados)
-    if (this._isMoving) {
-      const footOffset = Math.sin(this._animFrame * 1.5) * 3;
-      renderer.drawRect(
-        this._x + 4 + footOffset,
-        this._y + this._height - 4 + bounce,
-        6,
-        4,
-        darkColor
-      );
-      renderer.drawRect(
-        this._x + this._width - 10 - footOffset,
-        this._y + this._height - 4 + bounce,
-        6,
-        4,
-        darkColor
-      );
-    } else {
-      renderer.drawRect(
-        this._x + 4,
-        this._y + this._height - 4 + bounce,
-        6,
-        4,
-        darkColor
-      );
-      renderer.drawRect(
-        this._x + this._width - 10,
-        this._y + this._height - 4 + bounce,
-        6,
-        4,
-        darkColor
-      );
-    }
+    drawPlayerSprite(renderer, this._x, this._y, {
+      direction: this._direction,
+      moving: this._isMoving,
+      frame: this._animFrame,
+      time
+    });
 
     // Camadas de EPI
     drawOverlay(
@@ -221,15 +134,17 @@ export class Player extends Entity {
       this._flashTimer > 0 ? this._flashTimer / 1.8 : 0
     );
 
-    // Indicador de "VOCÊ" acima do sprite
-    const labelY = this._y - 18 + Math.sin(this._labelTimer * 3) * 1.5;
-    renderer.drawText('VOCÊ', this._x + this._width / 2, labelY, {
+    // Indicador de "VOCÊ" acima do sprite, com plaquinha para não sumir no cenário.
+    const labelY = this._y - 27 + Math.sin(time * 3) * 1.5;
+    renderer.drawRect(this._x + this._width / 2 - 20, labelY - 1, 40, 11, 'rgba(4, 9, 15, 0.70)');
+    renderer.drawRect(this._x + this._width / 2 - 20, labelY - 1, 40, 1, 'rgba(255, 255, 255, 0.20)');
+    renderer.drawText('VOCÊ', this._x + this._width / 2, labelY + 1, {
       color: '#ffffff',
       font: FONTS.TINY,
       align: 'center',
       shadow: true
     });
-    renderer.drawRect(this._x + this._width / 2 - 2, labelY + 11, 4, 3, '#ffffff');
+    renderer.drawRect(this._x + this._width / 2 - 2, labelY + 12, 4, 3, '#ffffff');
   }
 
   _lightenColor(color, percent) {

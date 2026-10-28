@@ -1,4 +1,5 @@
 import { COLORS } from '../design-tokens/snes-theme.js';
+import { wrapText } from '../engine/TextUtils.js';
 import { drawChair } from './EquipmentRenderer.js';
 
 function shadow(renderer, x, y, w, h) {
@@ -330,6 +331,324 @@ export function drawProp(renderer, prop, equipmentSystem = null, options = {}) {
       break;
     }
 
+    case 'locker': {
+      shadow(renderer, x, y, w, h);
+      renderer.drawRect(x, y, w, h, '#455a64');
+      renderer.drawRect(x + 2, y + 2, w - 4, h - 4, '#78909c');
+      renderer.drawRect(x + 4, y + 4, w - 8, h - 8, '#546e7a');
+      renderer.drawRect(x + 5, y + 6, w - 10, 1, '#263238');
+      renderer.drawRect(x + 5, y + 9, w - 10, 1, '#263238');
+      renderer.drawRect(x + 5, y + 12, w - 10, 1, '#263238');
+      renderer.drawRect(x + w - 9, y + 14, 3, 2, '#cfd8dc');
+      renderer.drawRect(x + 5, y + h - 10, w - 10, 5, '#eceff1');
+      renderer.drawRect(x + 7, y + h - 9, w - 14, 3, '#1565c0');
+      renderer.drawRect(x + 2, y + h - 2, 4, 2, '#263238');
+      renderer.drawRect(x + w - 6, y + h - 2, 4, 2, '#263238');
+      break;
+    }
+
+    case 'cabinet': {
+      shadow(renderer, x, y, w, h);
+      renderer.drawRect(x, y, w, h, '#37474f');
+      renderer.drawRect(x + 2, y + 2, w - 4, h - 4, prop.color || '#90a4ae');
+      renderer.drawRect(x + 4, y + 4, w - 8, 7, '#cfd8dc');
+      renderer.drawRect(x + 4, y + 13, w - 8, 7, '#b0bec5');
+      renderer.drawRect(x + 4, y + 22, w - 8, 5, '#b0bec5');
+      renderer.drawRect(x + w / 2 - 3, y + 7, 6, 2, '#263238');
+      renderer.drawRect(x + w / 2 - 3, y + 16, 6, 2, '#263238');
+      renderer.drawRect(x + w / 2 - 3, y + 24, 6, 1, '#263238');
+      break;
+    }
+
+    case 'printer': {
+      shadow(renderer, x, y, w, h);
+      renderer.drawRect(x, y, w, h, '#263238');
+      renderer.drawRect(x + 2, y + 2, w - 4, h - 4, '#eceff1');
+      renderer.drawRect(x + 3, y + 3, w - 6, 4, '#cfd8dc');
+      renderer.drawRect(x + 5, y + 9, w - 10, 2, '#ffffff');
+      renderer.drawRect(x + 6, y + 4, 3, 2, '#43a047');
+      renderer.drawRect(x + 10, y + 4, 2, 2, '#e53935');
+      renderer.drawRect(x + 4, y + h - 1, w - 8, 2, '#ffffff');
+      break;
+    }
+
+    case 'fireAlarm': {
+      renderer.drawRect(x, y, w, h, '#b71c1c');
+      renderer.drawRect(x + 2, y + 2, w - 4, h - 4, '#e53935');
+      renderer.drawRect(x + 3, y + 3, w - 6, 4, '#ffffff');
+      renderer.drawRect(x + 4, y + 4, w - 8, 2, '#b71c1c');
+      renderer.drawRect(x + w / 2 - 2, y + 8, 4, 5, '#ffffff');
+      renderer.drawRect(x + 2, y + h - 3, w - 4, 2, '#263238');
+      break;
+    }
+
+    case 'helmetRack': {
+      renderer.drawRect(x, y, w, h, '#5d4037');
+      renderer.drawRect(x + 2, y + 2, w - 4, h - 4, '#8d6e63');
+      for (let index = 0; index < 3; index++) {
+        const hx = x + 3 + index * 7;
+        renderer.drawRect(hx, y + 5, 5, 2, COLORS.SAFETY_YELLOW);
+        renderer.drawRect(hx - 1, y + 7, 7, 2, '#f9a825');
+        renderer.drawRect(hx + 1, y + 9, 3, 1, '#263238');
+      }
+      renderer.drawRect(x + 2, y + h - 4, w - 4, 2, '#5d4037');
+      break;
+    }
+
+    case 'cableReel': {
+      shadow(renderer, x, y, w, h);
+      renderer.drawRect(x + 2, y + 2, w - 4, h - 4, '#8d6e63');
+      renderer.drawRect(x + 4, y + 4, w - 8, h - 8, '#4e342e');
+      renderer.drawRect(x + 6, y + 6, w - 12, h - 12, '#1565c0');
+      renderer.drawRect(x + 8, y + 8, w - 16, h - 16, '#42a5f5');
+      renderer.drawRect(x + 3, y + h - 3, w - 6, 2, '#5d4037');
+      renderer.drawRect(x + w - 5, y + 4, 3, h - 8, '#ffb74d');
+      break;
+    }
+
+    case 'barrier': {
+      renderer.drawRect(x + 3, y + h - 3, 4, 3, '#263238');
+      renderer.drawRect(x + w - 7, y + h - 3, 4, 3, '#263238');
+      renderer.drawRect(x, y + 3, w, 5, '#e65100');
+      for (let index = 0; index < w; index += 8) {
+        renderer.drawRect(x + index, y + 3, 4, 5, '#ffffff');
+      }
+      renderer.drawRect(x + 2, y + 2, 3, h - 2, '#ffb74d');
+      renderer.drawRect(x + w - 5, y + 2, 3, h - 2, '#ffb74d');
+      break;
+    }
+
+    case 'acousticPanel': {
+      renderer.drawRect(x, y, w, h, '#311b3d');
+      renderer.drawRect(x + 2, y + 2, w - 4, h - 4, '#6a1b9a');
+      for (let py = 4; py < h - 4; py += 6) {
+        for (let px = 4; px < w - 4; px += 6) {
+          renderer.drawRect(x + px, y + py, 3, 3, '#8e24aa');
+        }
+      }
+      break;
+    }
+
+    case 'soundMeter': {
+      renderer.drawRect(x + w / 2 - 1, y + 8, 2, h - 8, '#263238');
+      renderer.drawRect(x + 2, y + 2, w - 4, 8, '#263238');
+      renderer.drawRect(x + 3, y + 3, w - 6, 5, '#90a4ae');
+      renderer.drawRect(x + 4, y + 4, w - 8, 3, '#43a047');
+      renderer.drawRect(x + 2, y + h - 2, w - 4, 2, '#263238');
+      break;
+    }
+
+    case 'safetyFence': {
+      renderer.drawRect(x, y, 3, h, '#f9a825');
+      renderer.drawRect(x + w - 3, y, 3, h, '#f9a825');
+      renderer.drawRect(x, y + 2, w, 3, '#ffc107');
+      renderer.drawRect(x, y + h - 4, w, 3, '#ffc107');
+      for (let index = 5; index < w - 5; index += 8) {
+        renderer.drawRect(x + index, y + 2, 4, 3, '#263238');
+        renderer.drawRect(x + index, y + h - 4, 4, 3, '#263238');
+      }
+      break;
+    }
+
+    case 'toolcart': {
+      shadow(renderer, x, y, w, h);
+      renderer.drawRect(x, y + 3, w, h - 3, '#b71c1c');
+      renderer.drawRect(x + 2, y + 4, w - 4, 6, '#e53935');
+      renderer.drawRect(x + 3, y + 5, 5, 3, '#90a4ae');
+      renderer.drawRect(x + 10, y + 5, 4, 3, '#ffc107');
+      renderer.drawRect(x + 2, y + 12, w - 4, 2, '#263238');
+      renderer.drawRect(x + 3, y + h - 3, 3, 3, '#263238');
+      renderer.drawRect(x + w - 6, y + h - 3, 3, 3, '#263238');
+      break;
+    }
+
+    case 'forklift': {
+      shadow(renderer, x, y, w, h);
+      renderer.drawRect(x + 8, y + 4, w - 20, h - 10, '#f9a825');
+      renderer.drawRect(x + 10, y + 6, w - 24, 6, '#ffc107');
+      renderer.drawRect(x + 12, y + 13, 10, 7, '#263238');
+      renderer.drawRect(x + 14, y + 14, 6, 4, '#546e7a');
+      renderer.drawRect(x + w - 13, y + 2, 4, h - 8, '#263238');
+      renderer.drawRect(x + w - 9, y + 4, 2, h - 12, '#90a4ae');
+      renderer.drawRect(x + 2, y + h - 8, w - 12, 3, '#546e7a');
+      renderer.drawRect(x + 2, y + h - 5, w - 12, 2, '#263238');
+      renderer.drawRect(x + 9, y + h - 4, 4, 3, '#111111');
+      renderer.drawRect(x + w - 17, y + h - 4, 4, 3, '#111111');
+      renderer.drawRect(x + 10, y + 5, 2, 2, '#ffffff');
+      break;
+    }
+
+    case 'tote': {
+      shadow(renderer, x, y, w, h);
+      renderer.drawRect(x, y + 2, w, h - 2, '#1565c0');
+      renderer.drawRect(x + 2, y, w - 4, 3, '#42a5f5');
+      renderer.drawRect(x + 3, y + 5, w - 6, h - 8, '#0d47a1');
+      renderer.drawRect(x + 4, y + 6, w - 8, 2, '#ffffff');
+      renderer.drawRect(x + 4, y + 6, 5, 2, '#ffc107');
+      renderer.drawRect(x + 4, y + 10, w - 8, 1, '#64b5f6');
+      break;
+    }
+
+    case 'harnessRack': {
+      shadow(renderer, x, y, w, h);
+      renderer.drawRect(x, y, 2, h, '#546e7a');
+      renderer.drawRect(x + w - 2, y, 2, h, '#546e7a');
+      renderer.drawRect(x, y, w, 2, '#90a4ae');
+      renderer.drawRect(x + 4, y + 3, 6, 7, '#ffc107');
+      renderer.drawRect(x + 6, y + 6, 2, 8, '#263238');
+      renderer.drawRect(x + 12, y + 3, 6, 7, '#ffc107');
+      renderer.drawRect(x + 14, y + 6, 2, 8, '#263238');
+      renderer.drawRect(x + 8, y + 12, 2, 5, '#263238');
+      renderer.drawRect(x + 13, y + 12, 2, 5, '#263238');
+      break;
+    }
+
+    case 'trash': {
+      shadow(renderer, x, y, w, h);
+      renderer.drawRect(x, y + 2, w, h - 2, '#455a64');
+      renderer.drawRect(x + 2, y + 4, w - 4, h - 6, '#78909c');
+      renderer.drawRect(x + 1, y, w - 2, 4, '#263238');
+      renderer.drawRect(x + 3, y + 2, w - 6, 1, '#cfd8dc');
+      renderer.drawRect(x + w / 2 - 1, y + 7, 2, 5, '#263238');
+      break;
+    }
+
+    case 'speaker': {
+      renderer.drawRect(x + 2, y + h - 4, w - 4, 3, '#263238');
+      renderer.drawRect(x + w / 2 - 1, y + 8, 2, h - 10, '#546e7a');
+      renderer.drawRect(x + 1, y + 2, w - 2, 10, '#111111');
+      renderer.drawRect(x + 3, y + 4, w - 6, 3, '#546e7a');
+      renderer.drawRect(x + w / 2 - 2, y + 7, 4, 3, '#90a4ae');
+      renderer.drawRect(x + w / 2 - 2, y + 12, 4, 2, '#ffc107');
+      break;
+    }
+
+    case 'normPoster': {
+      const accent = prop.color || COLORS.SAFETY_YELLOW;
+      renderer.drawRect(x + 3, y + 3, w, h, 'rgba(0, 0, 0, 0.40)');
+      renderer.drawRect(x, y, w, h, '#07111b');
+      renderer.drawRect(x + 2, y + 2, w - 4, h - 4, '#0d2030');
+      renderer.drawRect(x, y, w, 3, accent);
+      renderer.drawRect(x, y, 4, h, accent);
+      renderer.drawRect(x + 4, y, w - 4, 1, 'rgba(255, 255, 255, 0.18)');
+
+      renderer.drawRect(x + 10, y + 8, w - 20, 17, 'rgba(0, 0, 0, 0.36)');
+      renderer.drawRect(x + 10, y + 8, 4, 17, accent);
+      renderer.drawText(prop.norm || 'NR', x + 19, y + 10, {
+        color: accent,
+        font: '9px "Courier New", monospace',
+        shadow: true
+      });
+      renderer.drawText(String(prop.title || '').toUpperCase(), x + 58, y + 11, {
+        color: COLORS.UI_TEXT,
+        font: '8px "Courier New", monospace',
+        shadow: false,
+        maxWidth: w - 72
+      });
+
+      let lineY = y + 30;
+      const rules = Array.isArray(prop.lines) ? prop.lines.slice(0, 3) : [];
+      for (const rule of rules) {
+        const wrapped = wrapText(rule, 42);
+        for (let index = 0; index < wrapped.length; index++) {
+          renderer.drawText(index === 0 ? '•' : ' ', x + 12, lineY, {
+            color: accent,
+            font: '8px "Courier New", monospace',
+            shadow: false
+          });
+          renderer.drawText(wrapped[index], x + 20, lineY, {
+            color: '#d6e2ec',
+            font: '7px "Courier New", monospace',
+            shadow: false
+          });
+          lineY += 8;
+        }
+      }
+
+      renderer.drawRect(x + 10, y + h - 11, w - 20, 1, 'rgba(255, 255, 255, 0.10)');
+      renderer.drawText('RESUMO EDUCATIVO', x + 12, y + h - 9, {
+        color: COLORS.UI_TEXT_DIM,
+        font: '7px "Courier New", monospace',
+        shadow: false
+      });
+      break;
+    }
+
+    case 'earmuffStation': {
+      shadow(renderer, x, y, w, h);
+      renderer.drawRect(x, y + 2, w, h - 2, '#37474f');
+      renderer.drawRect(x + 2, y + 4, w - 4, h - 6, '#546e7a');
+      renderer.drawRect(x + 3, y, w - 6, 4, '#90a4ae');
+      renderer.drawRect(x + 5, y + 8, 12, 12, '#ffc107');
+      renderer.drawRect(x + 7, y + 10, 8, 8, '#f9a825');
+      renderer.drawRect(x + 24, y + 8, 12, 12, '#ffc107');
+      renderer.drawRect(x + 26, y + 10, 8, 8, '#f9a825');
+      renderer.drawRect(x + 5, y + 20, 38, 2, '#263238');
+      renderer.drawRect(x + 12, y + 27, 32, 3, '#111111');
+      break;
+    }
+
+    case 'floorSign': {
+      renderer.drawRect(x + 2, y + 2, w, h, 'rgba(0, 0, 0, 0.32)');
+      renderer.drawRect(x, y, w, h, '#f9a825');
+      renderer.drawRect(x + 2, y + 2, w - 4, h - 4, '#ffc107');
+      for (let index = 4; index < w - 8; index += 14) {
+        renderer.drawRect(x + index, y + 3, 8, 2, '#111111');
+        renderer.drawRect(x + index + 4, y + h - 5, 8, 2, '#111111');
+      }
+      renderer.drawText(prop.label || '', x + w / 2, y + h / 2 - 4, {
+        color: '#111111',
+        font: '9px "Courier New", monospace',
+        align: 'center',
+        shadow: false
+      });
+      break;
+    }
+
+    case 'exitSign': {
+      renderer.drawRect(x + 2, y + 2, w, h, 'rgba(0, 0, 0, 0.42)');
+      renderer.drawRect(x, y, w, h, '#1b5e20');
+      renderer.drawRect(x + 2, y + 2, w - 4, h - 4, '#2e7d32');
+      renderer.drawRect(x + 3, y + 3, w - 6, 1, '#a5d6a7');
+      renderer.drawRect(x + 7, y + 8, 10, 10, '#ffffff');
+      renderer.drawRect(x + 9, y + 10, 3, 6, '#2e7d32');
+      renderer.drawRect(x + 13, y + 12, 3, 3, '#2e7d32');
+      renderer.drawText('SAÍDA', x + 23, y + 9, {
+        color: '#ffffff',
+        font: '8px "Courier New", monospace',
+        shadow: false
+      });
+      break;
+    }
+
+    case 'ladder': {
+      renderer.drawRect(x, y, 3, h, '#90a4ae');
+      renderer.drawRect(x + w - 3, y, 3, h, '#90a4ae');
+      for (let index = 4; index < h - 2; index += 9) {
+        renderer.drawRect(x + 2, y + index, w - 4, 3, '#cfd8dc');
+        renderer.drawRect(x + 2, y + index + 2, w - 4, 1, '#607d8b');
+      }
+      renderer.drawRect(x - 2, y, 2, h, 'rgba(0, 0, 0, 0.20)');
+      break;
+    }
+
+    case 'fireBlanket': {
+      renderer.drawRect(x + 2, y + 2, w, h, 'rgba(0, 0, 0, 0.32)');
+      renderer.drawRect(x, y, w, h, '#b71c1c');
+      renderer.drawRect(x + 2, y + 2, w - 4, h - 4, '#e53935');
+      renderer.drawRect(x + 3, y + 3, w - 6, 8, '#ffcdd2');
+      renderer.drawText('MANTA', x + w / 2, y + 5, {
+        color: '#b71c1c',
+        font: '7px "Courier New", monospace',
+        align: 'center',
+        shadow: false
+      });
+      renderer.drawRect(x + 4, y + 15, w - 8, 2, '#ffffff');
+      renderer.drawRect(x + 4, y + 20, w - 8, 2, '#ffffff');
+      renderer.drawRect(x + w / 2 - 2, y + h - 9, 4, 5, '#263238');
+      break;
+    }
+
     default: {
       renderer.drawRect(x, y, w, h, 'rgba(255, 255, 255, 0.08)');
       break;
@@ -377,11 +696,17 @@ export function drawRoomLabels(renderer, map) {
     // A primeira linha de salas fica parcialmente sob a barra superior do HUD.
     // Por isso, o rótulo desce para y=48 apenas nessa linha.
     const topY = room.y === 1 ? 48 : room.y * map.tileSize + 5;
-    const label = room.norm
-      ? room.norm
-      : room.name.split(' ')[0].toUpperCase();
+    const label = room.phaseLabel
+      || (room.norm ? room.norm : room.name.split(' ')[0].toUpperCase());
+    const width = Math.max(38, label.length * 6 + 14);
 
-    renderer.drawText(label, centerX, topY, {
+    renderer.drawRect(centerX - width / 2 + 2, topY + 2, width, 12, 'rgba(0, 0, 0, 0.38)');
+    renderer.drawRect(centerX - width / 2, topY, width, 12, 'rgba(5, 11, 18, 0.76)');
+    renderer.drawRect(centerX - width / 2, topY, 3, 12, room.color);
+    renderer.drawRect(centerX + width / 2 - 3, topY, 3, 12, room.color);
+    renderer.drawRect(centerX - width / 2 + 3, topY, width - 6, 1, 'rgba(255, 255, 255, 0.15)');
+
+    renderer.drawText(label, centerX, topY + 2, {
       color: room.color,
       font: '9px "Courier New", monospace',
       align: 'center',

@@ -8,18 +8,19 @@
 
 ## 0. Status desta versão
 
-**Versão:** 1.0  
-**Data de referência:** 27/10/2026  
-**Ambiente de validação:** navegador Chromium/Edge em desktop, servidor local `npm start`.  
-**Registro detalhado:** [qa/2026-10-27-v1.0-smoke.md](qa/2026-10-27-v1.0-smoke.md)
+- **Versão:** 1.1
+- **Data de referência:** 28/10/2026
+- **Ambiente de validação:** navegador Chromium/Edge em desktop, servidor local `npm start`.
+- **Registro detalhado:** [qa/2026-10-28-linear-phases.md](qa/2026-10-28-linear-phases.md) e [qa/2026-10-27-v1.0-smoke.md](qa/2026-10-27-v1.0-smoke.md) (histórico).
 
 | Verificação | Status | Observação |
 | --- | --- | --- |
-| `npm test` | ✅ Passou | Sintaxe dos 26 JS + smoke test de dados/lógica |
+| `npm test` | ✅ Passou | Sintaxe dos 30 JS + smoke test de dados, 10 fases e lógica |
 | Fluxo de desafio e EPI | ✅ Validado | Helena/NR-6, incluindo erro, dica, acerto e capacete |
-| Fluxo completo dos 10 EPIs | ✅ Validado | Primeiro fluxo manual + progressão integrada dos 10 EPIs |
+| Fluxo completo das 10 fases | ✅ Validado | Playthrough automatizado: desafio → porta → próxima sala → certificado |
+| Porta de fase | ✅ Validado | Bloqueada sem EPI; libera após o acerto e carrega a próxima NR |
 | Manual de NRs | ✅ Validado | Lista, página, detalhe e fechamento |
-| Save parcial | ✅ Validado | Reload + CONTINUAR |
+| Save parcial | ✅ Validado | Reload + CONTINUAR restaura a fase atual |
 | Save completo | ✅ Validado | Abre direto no certificado |
 | Certificado e reset | ✅ Validado | Confirmação volta ao menu e apaga save |
 | Áudio/mute | ✅ Validado | Alternância e persistência |
@@ -60,6 +61,7 @@ npm start
 - [ ] Cada EPI tem exatamente uma NR e um especialista.
 - [ ] Cada desafio tem 4 alternativas e 1 correta inequívoca.
 - [ ] Manual tem 12 cartas (10 desafios + NR-5 + NR-7).
+- [ ] Existem 10 fases lineares, uma por NR, na ordem do HUD.
 - [ ] Resolução fixa 640×480 e mapa 20×15 de 32 px.
 - [ ] Controles são apenas por teclado.
 - [ ] Disclaimer educativo está em README, manual e certificado.
@@ -85,6 +87,7 @@ npm start
 - [ ] O canvas permanece 640×480 sem distorção.
 - [ ] Paredes, props e limites do mapa bloqueiam o jogador.
 - [ ] O jogador não atravessa NPCs nem sai do mapa.
+- [ ] A porta bloqueada impede a passagem e a porta liberada carrega a próxima fase.
 - [ ] Não há flicker, tearing visível ou texto cortado.
 - [ ] Partículas e confete não travam a tela.
 - [ ] A vinheta/scanline não prejudica a leitura.
@@ -93,8 +96,9 @@ npm start
 ### 3.3 Save, áudio e fullscreen
 
 - [ ] Save é criado ao conquistar o primeiro EPI.
-- [ ] Save é atualizado nos EPIs seguintes.
-- [ ] `CONTINUAR` restaura posição, EPIs e desafios.
+- [ ] Save é atualizado nos EPIs seguintes e ao atravessar uma porta.
+- [ ] `CONTINUAR` restaura fase, posição, EPIs e desafios.
+- [ ] Save antigo sem fase é migrado para a primeira NR pendente.
 - [ ] Save com 10 EPIs abre direto no certificado.
 - [ ] Save inválido não impede o jogo de abrir.
 - [ ] Concluir certificado apaga o save.
@@ -110,7 +114,8 @@ npm start
 ### 4.1 Diálogos e desafios
 
 - [ ] Introdução inicial explica missão e controles.
-- [ ] Os 10 NPCs estão nas salas corretas.
+- [ ] Os 10 NPCs aparecem em suas fases lineares corretas.
+- [ ] Cada fase exibe pôster da NR e props temáticos.
 - [ ] O prompt aparece na distância correta.
 - [ ] Cada diálogo termina em desafio ou em conversa de reforço.
 - [ ] Resposta errada mostra a correta e a dica.
@@ -137,8 +142,7 @@ npm start
 
 ### 4.3 Manual
 
-- [ ] `M` abre e fecha.
-- [ ] O mural abre o manual.
+- [ ] `M` abre e fecha durante qualquer fase.
 - [ ] Lista tem 12 cartas em 2 páginas.
 - [ ] Setas trocam seleção/página.
 - [ ] `Enter` abre o detalhe.
@@ -148,7 +152,7 @@ npm start
 
 ### 4.4 Certificado
 
-- [ ] O 10º EPI aciona o certificado.
+- [ ] A porta da 10ª fase aciona o certificado.
 - [ ] O certificado mostra os 10 ícones.
 - [ ] Mostra as 10 NRs e a data.
 - [ ] Mostra o selo/assinaturas.
@@ -212,10 +216,10 @@ Executar em uma janela anônima, com `localStorage` limpo.
 - [ ] 3. Iniciar NOVO JOGO; concluir a introdução com Espaço.
 - [ ] 4. Mover com WASD/setas; verificar colisão.
 - [ ] 5. Conversar com Helena; errar; ver dica; voltar; acertar.
-- [ ] 6. Ver o capacete no sprite e no HUD; conferir toast.
+- [ ] 6. Ver o capacete no sprite e no HUD; conferir a porta verde e atravessar para a Fase 2.
 - [ ] 7. Abrir o manual (`M`); navegar, abrir detalhe e voltar.
-- [ ] 8. Recarregar; usar CONTINUAR; conferir progresso e posição.
-- [ ] 9. Completar os 10 EPIs; conferir certificado.
+- [ ] 8. Recarregar; usar CONTINUAR; conferir fase, progresso e posição.
+- [ ] 9. Completar as 10 fases; atravessar a última porta e conferir o certificado.
 - [ ] 10. Confirmar; voltar ao menu; conferir save apagado.
 
 ### Console

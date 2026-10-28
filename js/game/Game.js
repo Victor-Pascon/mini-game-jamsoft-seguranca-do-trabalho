@@ -16,9 +16,12 @@ import { NormManual } from './NormManual.js';
 import { Certificate } from './Certificate.js';
 import { drawProp, drawRoomLabels, getNearbyInteractiveProp } from './Props.js';
 import { drawIcon, drawOverlay } from './EquipmentRenderer.js';
+import { drawMapDetails, drawDust, drawPhaseDoor } from './EnvironmentRenderer.js';
+import { drawPlayerSprite } from './CharacterRenderer.js';
 
-import { safetyMap, getRoomAt } from '../data/maps.js';
-import { npcs as npcData, getNpc } from '../data/npcs.js';
+import { getRoomAt } from '../data/maps.js';
+import { PHASES, getPhaseMap } from '../data/phaseMaps.js';
+import { getNpc } from '../data/npcs.js';
 import { getChallengeByNpc } from '../data/challenges.js';
 import { dialogs } from '../data/dialogs.js';
 import { equipmentList, getEquipment } from '../data/equipment.js';
@@ -34,7 +37,9 @@ export class Game {
     this._save = new SaveSystem();
     this._sound = new Sound();
     this._state = new StateManager();
-    this._map = safetyMap;
+    this._map = getPhaseMap(0);
+    this._phaseIndex = 0;
+    this._phaseSolved = false;
 
     this._manual = new NormManual(this._sound);
     this._certificate = new Certificate();
@@ -50,6 +55,7 @@ export class Game {
     this._activeNpc = null;
     this._nearbyNpc = null;
     this._nearbyProp = null;
+    this._nearDoor = false;
 
     this._showIntro = false;
     this._menuSelection = 0;
@@ -62,7 +68,23 @@ export class Game {
     this._running = false;
     this._rafId = null;
 
+    // O cenário (piso, paredes, luzes e rótulos) não muda durante a partida.
+    // Renderizá-lo uma vez em um canvas auxiliar economiza milhares de
+    // operações de desenho por frame e mantém a exploração fluida.
+    this._backgroundCanvas = document.createElement('canvas');
+    this._backgroundCanvas.width = 640;
+    this._backgroundCanvas.height = 480;
+    this._backgroundRenderer = new Renderer(this._backgroundCanvas);
+
     this._resetWorld(false);
+  }
+
+  _buildMapBackground() {
+    const renderer = this._backgroundRenderer;
+    renderer.clear();
+    renderer.drawMap(this._map, this._map.tileSize);
+    drawMapDetails(renderer, this._map, 0, { dust: false });
+    drawRoomLabels(renderer, this._map);
   }
 
   start() {
@@ -94,11 +116,8 @@ export class Game {
   }
 
   _resetWorld(showIntro = false) {
-    this._player = new Player({
-      x: this._map.playerStart.x,
-      y: this._map.playerStart.y
-    });
-    this._npcs = npcData.map((data) => new NPC(data));
+    this._player = new Player({ x: 0, y: 0 });
+    this._npcs = [];
     this._equipment = new EquipmentSystem();
     this._completedChallenges = [];
     this._dialog = new Dialog();
@@ -107,13 +126,43 @@ export class Game {
     this._certificate = new Certificate();
     this._manual = new NormManual(this._sound);
 
+    this._phaseIndex = 0;
+    this._phaseSolved = false;
     this._activeNpc = null;
     this._nearbyNpc = null;
     this._nearbyProp = null;
+    this._nearDoor = false;
+
+    this._loadPhase(0);
     this._showIntro = showIntro;
     this._toast = null;
     this._toastTimer = 0;
 
+    this._syncNpcStates();
+  }
+
+  _loadPhase(index) {
+    const safeIndex = Math.max(0, Math.min(PHASES.length - 1, index));
+    const phase = PHASES[safeIndex];
+    if (!phase) return;
+
+    this._phaseIndex = safeIndex;
+    this._map = getPhaseMap(safeIndex);
+    this._phaseSolved = this._equipment.has(phase.equipmentId);
+
+    this._player.setPosition(this._map.playerStart.x, this._map.playerStart.y);
+    this._player.setEquipment(this._equipment.getAll());
+
+    const npcData = getNpc(phase.npcId);
+    this._npcs = npcData
+      ? [new NPC({ ...npcData, x: this._map.npcSpawn.x, y: this._map.npcSpawn.y })]
+      : [];
+
+    this._activeNpc = null;
+    this._nearbyNpc = null;
+    this._nearbyProp = null;
+    this._nearDoor = false;
+    this._buildMapBackground();
     this._syncNpcStates();
   }
 
@@ -148,6 +197,16 @@ export class Game {
     this._completedChallenges = Array.isArray(saved.completedChallenges)
       ? [...saved.completedChallenges]
       : [];
+
+    const savedPhase = Number.isInteger(saved.phase) ? saved.phase : -1;
+    let phaseIndex = savedPhase;
+    if (phaseIndex < 0 || phaseIndex >= PHASES.length) {
+      const firstMissing = PHASES.findIndex(
+        (phase) => !this._equipment.has(phase.equipmentId)
+      );
+      phaseIndex = firstMissing >= 0 ? firstMissing : PHASES.length - 1;
+    }
+    this._loadPhase(phaseIndex);
 
     this._player.setEquipment(this._equipment.getAll());
     if (saved.player) {
@@ -200,7 +259,8 @@ export class Game {
     this._save.saveGame(
       this._player,
       this._equipment.toArray(),
-      this._completedChallenges
+      this._completedChallenges,
+      this._phaseIndex
     );
   }
 
@@ -299,15 +359,22 @@ export class Game {
       }
     }
     Collision.resolveMapCollision(this._player, this._map);
+    this._clampLockedExit();
 
     this._nearbyNpc = this._findNearbyNpc();
     this._nearbyProp = getNearbyInteractiveProp(this._player, this._map.props);
+    this._nearDoor = this._isNearExitDoor();
 
     if (this._showIntro) {
       this._introDialog.update(deltaTime, this._input);
       if (this._introDialog.isFinished()) {
         this._showIntro = false;
       }
+      return;
+    }
+
+    if (this._phaseSolved && this._playerTouchesExit()) {
+      this._advancePhase();
       return;
     }
 
@@ -321,6 +388,36 @@ export class Game {
     if (confirm && this._nearbyProp) {
       this._manual.open();
     }
+  }
+
+  _clampLockedExit() {
+    if (this._phaseSolved || !this._map?.exit) return;
+
+    const bounds = this._player.getBounds();
+    const exit = this._map.exit;
+    const overlapsDoorY = bounds.y + bounds.height > exit.y && bounds.y < exit.y + exit.h;
+    if (!overlapsDoorY) return;
+
+    const maxX = exit.x - this._player.width;
+    if (this._player.x > maxX) {
+      this._player.x = maxX;
+    }
+  }
+
+  _isNearExitDoor() {
+    if (!this._map?.exit) return false;
+    const exit = this._map.exit;
+    const centerX = this._player.getCenterX();
+    const centerY = this._player.getCenterY();
+    return centerX > exit.x - 118 && Math.abs(centerY - (exit.y + exit.h / 2)) < 92;
+  }
+
+  _playerTouchesExit() {
+    if (!this._map?.exit) return false;
+    const bounds = this._player.getBounds();
+    const exit = this._map.exit;
+    const overlapsY = bounds.y + bounds.height > exit.y && bounds.y < exit.y + exit.h;
+    return overlapsY && bounds.x + bounds.width >= exit.x + 10;
   }
 
   _findNearbyNpc() {
@@ -349,10 +446,12 @@ export class Game {
     const lines = alreadyEquipped ? data.dialogRepeat : data.dialogIntro;
 
     this._dialog.startDialog(lines, {
+      id: data.id,
       name: data.name,
       role: data.role,
       color: data.color,
-      avatar: data.avatar
+      avatar: data.avatar,
+      norm: data.norm
     });
 
     this._state.setState(STATE.DIALOG);
@@ -411,23 +510,47 @@ export class Game {
         this._activeNpc.setCompleted(true);
       }
 
+      this._phaseSolved = true;
       this._syncNpcStates();
       this._saveProgress();
       this._sound.playUnlock();
 
       const item = getEquipment(equipmentId);
-      this._showToast(`EPI conquistado: ${item?.name || equipmentId}`, 3);
+      const phase = PHASES[this._phaseIndex];
+      this._showToast(
+        `EPI conquistado: ${item?.name || equipmentId} • porta ${phase?.norm || ''} liberada`,
+        3.5
+      );
     }
 
     this._activeNpc = null;
+    this._state.setState(STATE.EXPLORE);
+  }
 
-    if (this._equipment.isComplete()) {
+  _advancePhase() {
+    if (!this._phaseSolved) return;
+
+    const nextIndex = this._phaseIndex + 1;
+    if (nextIndex >= PHASES.length) {
+      this._saveProgress();
       this._certificate.start();
       this._state.setState(STATE.CERTIFICATE);
+      this._showIntro = false;
       this._sound.playVictory();
-    } else {
-      this._state.setState(STATE.EXPLORE);
+      return;
     }
+
+    this._sound.playSelect();
+    this._loadPhase(nextIndex);
+    this._state.setState(STATE.EXPLORE);
+    this._showIntro = false;
+    this._saveProgress();
+
+    const phase = PHASES[nextIndex];
+    this._showToast(
+      `Fase ${nextIndex + 1}/${PHASES.length} • ${phase.norm} — ${phase.name}`,
+      3.5
+    );
   }
 
   _updateCertificate(deltaTime) {
@@ -518,8 +641,8 @@ export class Game {
   }
 
   _renderWorld() {
-    this._renderer.drawMap(this._map, this._map.tileSize);
-    drawRoomLabels(this._renderer, this._map);
+    this._renderer.context.drawImage(this._backgroundCanvas, 0, 0);
+    drawDust(this._renderer, this._time);
 
     for (const prop of this._map.props) {
       drawProp(this._renderer, prop, this._equipment, {
@@ -527,8 +650,15 @@ export class Game {
       });
     }
 
+    const room = this._map.roomDefs[0];
+    drawPhaseDoor(this._renderer, this._map.exit, {
+      solved: this._phaseSolved,
+      color: room?.color || COLORS.SAFETY_YELLOW,
+      last: this._phaseIndex >= PHASES.length - 1
+    });
+
     for (const npc of this._npcs) {
-      npc.render(this._renderer);
+      npc.render(this._renderer, { nearby: npc === this._nearbyNpc });
     }
 
     this._player.render(this._renderer);
@@ -570,6 +700,7 @@ export class Game {
     );
     const roomName = room ? room.name : 'Corredor principal';
     const roomNorm = room?.norm || 'CIRCULAÇÃO';
+    const phaseLabel = `${roomNorm} · FASE ${this._phaseIndex + 1}/${PHASES.length}`;
 
     this._renderer.drawText(roomName, 320, 6, {
       color: COLORS.UI_TEXT,
@@ -577,7 +708,7 @@ export class Game {
       align: 'center',
       shadow: true
     });
-    this._renderer.drawText(roomNorm, 320, 22, {
+    this._renderer.drawText(phaseLabel, 320, 22, {
       color: room?.color || COLORS.UI_TEXT_DIM,
       font: FONTS.TINY,
       align: 'center',
@@ -670,6 +801,12 @@ export class Game {
         this._renderPrompt(text);
       } else if (this._nearbyProp) {
         this._renderPrompt('ESPAÇO  Abrir Mural de Normas');
+      } else if (this._nearDoor) {
+        this._renderPrompt(
+          this._phaseSolved
+            ? `PORTA LIBERADA  →  ${this._phaseIndex >= PHASES.length - 1 ? 'CERTIFICADO' : 'PRÓXIMA NR'}`
+            : 'PORTA BLOQUEADA  —  CONCLUA O DESAFIO'
+        );
       }
     }
   }
@@ -918,31 +1055,20 @@ export class Game {
     const allEquipment = new Set(equipmentList.map((item) => item.id));
 
     ctx.save();
-    ctx.translate(532, 198);
-    ctx.scale(2, 2);
+    ctx.translate(532, 202);
+    ctx.scale(2.25, 2.25);
 
-    // Base do sprite (mesmo estilo do Player)
-    renderer.drawRect(4, 22, 16, 4, 'rgba(0, 0, 0, 0.35)');
-    renderer.drawRect(4, 2, 16, 10, COLORS.SNES_YELLOW, {
-      border: true,
-      borderColor: '#f9a825'
+    drawPlayerSprite(renderer, 0, 0, {
+      direction: 'down',
+      time: this._time
     });
-    renderer.drawRect(6, 4, 12, 3, '#ffe082');
-    renderer.drawRect(7, 6, 4, 4, '#ffffff');
-    renderer.drawRect(13, 6, 4, 4, '#ffffff');
-    renderer.drawRect(9, 7, 2, 2, '#111111');
-    renderer.drawRect(15, 7, 2, 2, '#111111');
-    renderer.drawRect(2, 12, 20, 10, COLORS.SNES_YELLOW, {
-      border: true,
-      borderColor: '#f9a825'
-    });
-    renderer.drawRect(6, 14, 12, 2, '#f9a825');
-    renderer.drawRect(4, 20, 6, 4, '#f9a825');
-    renderer.drawRect(14, 20, 6, 4, '#f9a825');
-
     drawOverlay(renderer, fakePlayer, allEquipment, 0, 0);
 
     ctx.restore();
+
+    // Brilho de equipamento completo.
+    const pulse = 0.5 + 0.5 * Math.sin(this._time * 2.6);
+    renderer.drawRect(502, 251, 108, 2, `rgba(255, 215, 0, ${0.20 + pulse * 0.18})`);
   }
 
   _renderMenuHelp() {

@@ -1,6 +1,6 @@
 # JAMSOFT TECNOLOGIA — Segurança em Jogo
 
-**A Jornada da Proteção** é um mini-game educativo de **Segurança do Trabalho** criado para a feira da JAMSOFT TECNOLOGIA. Em uma sede em pixel art estilo SNES, você conversa com especialistas, responde desafios sobre as **Normas Regulamentadoras (NRs)** e equipa o personagem com **10 itens de proteção** até receber o certificado de **Guardião da Segurança**.
+**A Jornada da Proteção** é um mini-game educativo de **Segurança do Trabalho** criado para a feira da JAMSOFT TECNOLOGIA. Em **10 salas temáticas em pixel art estilo SNES**, você conversa com especialistas, responde desafios sobre as **Normas Regulamentadoras (NRs)** e equipa o personagem com **10 itens de proteção** até receber o certificado de **Guardião da Segurança**.
 
 O jogo é rápido de aprender, jogável só com teclado e pensado para uma demonstração de feira: uma partida completa leva cerca de **5 a 10 minutos**.
 
@@ -47,12 +47,13 @@ No manual: `←` `→` troca de NR, `Enter` abre o detalhe e `Esc` volta.
 ## A jornada
 
 1. **Escolha “NOVO JOGO”** no menu.
-2. **Explore** a sede da JAMSOFT com o personagem.
-3. **Aproxime-se de um especialista** e pressione `Espaço`.
+2. **Explore a sala da fase atual**, inteiramente decorada com objetos e um pôster das regras da NR.
+3. **Aproxime-se do especialista** e pressione `Espaço`.
 4. Leia o diálogo, **responda ao desafio** de múltipla escolha e confira a explicação.
-5. Cada acerto **equipa um novo item no sprite** e no HUD.
-6. Consulte o **Manual de NRs** (`M`) sempre que quiser.
-7. Conquiste os **10 itens** para receber o **Certificado de Segurança do Trabalho**.
+5. Cada acerto **equipa um novo item no sprite** e **libera a porta de saída** na parede direita.
+6. **Atravesse a porta** para carregar a próxima sala e a próxima NR.
+7. Consulte o **Manual de NRs** (`M`) sempre que quiser.
+8. Atravesse a porta da **10ª fase** para receber o **Certificado de Segurança do Trabalho**.
 
 Ao errar, o jogo mostra a resposta correta e uma **dica educativa**. Não há punição: o objetivo é aprender e tentar de novo.
 
@@ -85,13 +86,19 @@ O manual (`M`) reúne **12 cartas**: as 10 NRs dos desafios e duas cartas extras
 
 - **Vanilla JavaScript + HTML5 Canvas**, sem frameworks e sem dependências.
 - Resolução fixa de **640×480**, com escala CSS responsiva e tela cheia.
-- Mapa **20×15 tiles** de 32 px, com 12 salas, corredores, props e NPCs.
+- **10 fases lineares**, cada uma com uma sala temática de **20×15 tiles** (640×480), especialista, pôster de regras da NR e props próprios do risco.
+- **Porta de saída por fase**: bloqueada até o acerto, abre com sinalização verde e leva à próxima NR ao ser atravessada.
+- **Cenários temáticos**: almoxarifado de EPI, produção/máquinas, ruído, brigada, elétrica, sinalização, altura, logística, PGR e ergonomia.
 - **Arte 100% procedural**: sprites, EPIs, ícones, cenário e partículas são desenhados com retângulos/círculos no canvas. Não há PNGs externos.
+- **Sprites detalhados** de jogador e especialistas em `CharacterRenderer.js`, com silhueta mais alta, sombreamento, cabelos, óculos, crachás e animação de caminhada/idle.
+- **Retratos animados** em `PortraitRenderer.js`: rostos únicos por especialista, piscada periódica e boca em movimento durante a digitação do diálogo.
+- **Cenário em camadas** em `EnvironmentRenderer.js`: rodapés, soleiras, luzes de teto, porta de fase, poeira ambiente e props extras por setor.
 - **Camadas de equipamento** desenhadas sobre o personagem: capacete, óculos, protetor, máscara, luvas, colete, cinto, botas e prancheta; a cadeira aparece no cenário do escritório.
+- **Cache do cenário estático**: piso, paredes, luzes e rótulos são renderizados uma vez em um canvas auxiliar, mantendo a exploração fluida em 640×480.
 - Loop com `requestAnimationFrame`, colisão por eixos, diálogos com efeito de máquina de escrever e transições de estado.
 - **WebAudio** para efeitos sonoros procedurais, com mute persistente.
 - **`localStorage`** para progresso (`jamsoft_seguranca_save`) e som (`jamsoft_seguranca_mute`).
-- Testes sem navegador para dados, progressão, desafios, diálogo e manual (`scripts/smoke.mjs`).
+- Testes sem navegador para dados, 10 fases, save, desafios, diálogo e manual (`scripts/smoke.mjs`).
 
 ---
 
@@ -118,12 +125,16 @@ O manual (`M`) reúne **12 cartas**: as 10 NRs dos desafios e duas cartas extras
 │   │   ├── norms.js           # 12 cartas de NRs
 │   │   ├── npcs.js            # 10 especialistas e diálogos
 │   │   ├── challenges.js      # 10 desafios
-│   │   ├── maps.js            # mapa, salas, portas e props
+│   │   ├── maps.js            # tipos de tile, portas e mapa de referência
+│   │   ├── phaseMaps.js       # 10 fases lineares e decoração temática
 │   │   └── dialogs.js         # intro, ajuda e textos gerais
 │   └── game/
 │       ├── Game.js            # loop, estados, HUD e integração
 │       ├── State.js
 │       ├── Entity.js
+│       ├── CharacterRenderer.js # sprites detalhados do jogador e NPCs
+│       ├── PortraitRenderer.js  # retratos animados do diálogo
+│       ├── EnvironmentRenderer.js # ambientação do cenário
 │       ├── Player.js
 │       ├── NPC.js
 │       ├── Dialog.js
@@ -150,12 +161,15 @@ O manual (`M`) reúne **12 cartas**: as 10 NRs dos desafios e duas cartas extras
 
 ## Status de validação
 
-- `npm test` verde: **26 arquivos JavaScript** + smoke test de dados e lógica.
-- Fluxo principal validado em **Chromium/Edge**: menu, exploração, desafio, EPI, manual, save/load e certificado.
-- Progressão dos 10 EPIs e acionamento do certificado validados por automação de estado.
+- `npm test` verde: **30 arquivos JavaScript** + smoke test de dados, fases e lógica.
+- Fluxo principal validado em **Chromium/Edge**: menu, fases lineares, diálogo, desafio, porta liberada, próxima fase, manual, save/load e certificado.
+- Upgrade visual validado em **Chromium/Edge**: sprites, retratos animados, diálogo, cenário, HUD, manual e certificado; console sem erros.
+- Exploração medida em **~76 fps** no canvas 640×480 após o cache do cenário estático.
+- Progressão das 10 fases, porta de saída e certificado validadas por automação de estado.
+- Save **v3** registra a fase atual; saves antigos sem fase são migrados pela primeira NR pendente.
 - **Pendente de validação manual:** tela cheia (`F`), Firefox/Safari, hardware definitivo da feira e revisão humana final das NRs.
 
-Detalhes e limitações: [qa/2026-10-27-v1.0-smoke.md](qa/2026-10-27-v1.0-smoke.md).
+Detalhes e limitações: [qa/2026-10-27-v1.0-smoke.md](qa/2026-10-27-v1.0-smoke.md), [qa/2026-10-28-visual-upgrade.md](qa/2026-10-28-visual-upgrade.md) e [qa/2026-10-28-linear-phases.md](qa/2026-10-28-linear-phases.md).
 
 ## Harness, agentes e sprints
 
@@ -184,9 +198,9 @@ Agentes:
 1. Abra o jogo em tela cheia (`F`).
 2. Deixe o som ligado (`V` mostra o estado).
 3. Comece um **NOVO JOGO** e leia a introdução.
-4. Faça o primeiro desafio com a Helena (NR-6) para mostrar o capacete entrando no sprite.
+4. Faça o primeiro desafio com a Helena (NR-6), mostre o capacete entrando no sprite e **atravesse a porta verde** para a fase da NR-12.
 5. Abra o manual (`M`) para mostrar as cartas de NRs.
-6. Se quiser demonstrar o final, jogue até os 10 EPIs ou use um save preparado.
+6. Se quiser demonstrar o final, jogue até a 10ª porta ou use um save preparado.
 7. Ao terminar o certificado, o save é apagado automaticamente para o próximo visitante.
 
 Para **resetar** manualmente no navegador:

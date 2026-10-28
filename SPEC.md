@@ -60,16 +60,17 @@ O jogador explora uma sede em pixel art, conversa com especialistas, responde de
 ### F2 — Exploração
 
 - Mapa top-down fixo de **640×480**, em uma grade de **20×15 tiles de 32 px**.
-- **12 salas** conectadas por corredores, sem labirinto:
-  - 10 salas de desafio (EPI, PGR, Brigada, Elétrica, Ruído, Ergonomia, Produção, Logística, Sinalização e Altura).
-  - 1 sala de manual/mural.
-  - 1 auditório.
+- **10 fases lineares**, cada uma com uma sala temática completa dedicada a uma NR:
+  - EPI (NR-6), Produção/Máquinas (NR-12), Ruído (NR-15), Brigada (NR-23), Elétrica (NR-10), Sinalização (NR-26), Altura (NR-35), Logística (NR-11), PGR (NR-1) e Ergonomia (NR-17).
+  - Cada sala tem piso próprio, props do risco, pôster com regras resumidas da NR e um especialista.
+  - A saída fica na parede direita; começa bloqueada e abre após o acerto do desafio.
 - Jogador de **24×24 px**, velocidade de aproximadamente **150 px/s**.
 - Movimento em 4 direções, colisão com paredes, props e limites do mapa.
 - Sprite do jogador com camadas de equipamento e etiqueta “VOCÊ”.
+- Atravessar a porta liberada carrega a próxima fase; na 10ª, leva ao certificado.
 - HUD superior com:
   - contador de proteção `n/10` e barra de progresso;
-  - nome da sala atual e NR correspondente;
+  - nome da sala atual, NR e indicador `FASE n/10`;
   - lembretes de atalhos (`M`, `F`, `V`, movimento).
 - HUD inferior com:
   - contador de EPIs;
@@ -79,7 +80,7 @@ O jogador explora uma sede em pixel art, conversa com especialistas, responde de
 
 ### F3 — Personagens e diálogos
 
-- **10 especialistas**, cada um vinculado a uma sala, uma NR e um EPI.
+- **10 especialistas**, um por fase, cada um vinculado a uma NR e um EPI.
 - Aproximação exibe prompt contextual:
   - “Conversar com ...”, se o desafio ainda não foi concluído;
   - conversa de reforço, se o EPI já foi conquistado.
@@ -103,7 +104,7 @@ O jogador explora uma sede em pixel art, conversa com especialistas, responde de
   - Espaço/Enter/Z confirma;
   - resposta errada não encerra: mostra a correta, permite abrir a dica e voltar;
   - resposta correta exibe o EPI conquistado e a explicação;
-  - confirmação final entrega o item e volta à exploração.
+  - confirmação final entrega o item, libera a porta e volta à exploração.
 - O jogador pode errar várias vezes; as tentativas são registradas apenas para feedback visual.
 
 ### F5 — Equipamentos e progressão
@@ -127,6 +128,7 @@ O jogador explora uma sede em pixel art, conversa com especialistas, responde de
   - desbloqueia o item no `EquipmentSystem`;
   - adiciona a camada correspondente ao sprite;
   - atualiza o HUD e o estado do NPC;
+  - libera a porta de saída da fase;
   - mostra um toast;
   - salva o progresso.
 - O capacete, os óculos, o protetor, a máscara, as luvas, o colete, o cinto, o calçado e a prancheta são desenhados sobre o jogador.
@@ -135,7 +137,7 @@ O jogador explora uma sede em pixel art, conversa com especialistas, responde de
 
 ### F6 — Manual de NRs
 
-- Aberto por `M` ou pelo mural da sala “Mural de Normas”.
+- Aberto por `M` durante a exploração de qualquer fase.
 - **12 cartas**: as 10 NRs dos desafios + NR-5 (CIPA) e NR-7 (PCMSO) como consulta.
 - Modo lista: duas páginas, 6 cartas por página, navegação por setas e `PageUp`/`PageDown`.
 - Modo detalhe: título, resumo, principais regras, vínculo com o EPI e status (`DESAFIO`, `EPI ✓`, `CONSULTA`).
@@ -144,7 +146,7 @@ O jogador explora uma sede em pixel art, conversa com especialistas, responde de
 
 ### F7 — Certificado
 
-- Acionado automaticamente ao conquistar o 10º item.
+- Acionado ao atravessar a porta liberada da 10ª fase, após conquistar o 10º item.
 - Exibe:
   - título “Certificado de Segurança do Trabalho”;
   - nome “Guardião da Segurança do Trabalho”;
@@ -158,9 +160,10 @@ O jogador explora uma sede em pixel art, conversa com especialistas, responde de
 ### F8 — Save e carregamento
 
 - Persistência em `localStorage`, chave `jamsoft_seguranca_save`.
-- Conteúdo: versão, timestamp, posição do jogador, EPIs, desafios concluídos e data legível.
-- Save é criado/atualizado a cada EPI conquistado.
-- “CONTINUAR” restaura posição, equipamentos e desafios.
+- Conteúdo: versão, timestamp, posição do jogador, EPIs, desafios concluídos, **fase atual** e data legível.
+- Save é criado/atualizado a cada EPI conquistado e ao atravessar uma porta.
+- “CONTINUAR” restaura fase, posição, equipamentos e desafios.
+- Saves antigos sem fase são migrados para a primeira NR ainda pendente.
 - Save com os 10 itens abre diretamente no certificado.
 - Save inválido/indisponível não impede o jogo de iniciar.
 - Ao concluir o certificado, o save é removido.
@@ -235,9 +238,10 @@ MENU
 
 EXPLORE
  ├── aproximar de NPC + confirmar ─► DIALOG
- ├── aproximar do mural + confirmar ► EXPLORE + MANUAL
  ├── M ─────────────────────────────► EXPLORE + MANUAL
- └── 10 EPIs ───────────────────────► CERTIFICATE
+ ├── porta bloqueada ───────────────► EXPLORE (sem passagem)
+ ├── porta liberada + atravessar ───► EXPLORE (próxima fase)
+ └── porta da 10ª fase + atravessar ► CERTIFICATE
 
 DIALOG
  ├── avançar ───────────────────────► DIALOG
@@ -247,8 +251,7 @@ DIALOG
 CHALLENGE
  ├── alternativa + confirmar ────────► feedback correto/errado
  ├── erro + dica ────────────────────► CHALLENGE
- ├── acerto + confirmar ─────────────► EXPLORE + EPI
- └── 10º EPI ────────────────────────► CERTIFICATE
+ └── acerto + confirmar ─────────────► EXPLORE + EPI + porta liberada
 
 CERTIFICATE
  └── confirmar ──────────────────────► MENU (save apagado)
@@ -259,7 +262,8 @@ CERTIFICATE
 - O jogo pausa a exploração enquanto diálogo, desafio, manual ou certificado estão ativos.
 - O manual pode ser aberto na exploração; não pode ser aberto durante desafio/diálogo.
 - Um NPC nunca entrega o mesmo EPI duas vezes.
-- O certificado só aparece quando `equipment.isComplete()` é verdadeiro.
+- A porta só permite passagem quando o EPI da fase foi conquistado.
+- A porta da 10ª fase só leva ao certificado quando `equipment.isComplete()` é verdadeiro.
 - O save completo sempre tem prioridade e retoma no certificado.
 
 ---
@@ -335,18 +339,32 @@ CERTIFICATE
 }
 ```
 
-### 6.5 Sala e props
+### 6.5 Fase e props
 
 ```js
 {
-  id: 'epi',
-  x: 1, y: 1, w: 4, h: 3,
-  tile: TILE_TYPES.EPI_ROOM,
-  name: 'Almoxarifado de EPI',
-  norm: 'NR-6',
-  npcId: 'npc_epi',
-  color: '...',
-  label: 'NR-6 · ALMOXARIFADO'
+  id: 'phase_epi',
+  phase: true,
+  phaseIndex: 0,
+  width: 20,
+  height: 15,
+  tileSize: 32,
+  collisionTiles: [TILE_TYPES.WALL],
+  tiles: Array(300),
+  roomDefs: [{
+    id: 'epi',
+    x: 1, y: 2, w: 18, h: 11,
+    tile: TILE_TYPES.EPI_ROOM,
+    name: 'Almoxarifado de EPI',
+    norm: 'NR-6',
+    npcId: 'npc_epi',
+    color: '#ff6f00',
+    label: 'NR-6 · ALMOXARIFADO'
+  }],
+  props: [/* pôster gerado + props temáticos */],
+  playerStart: { x: 308, y: 356 },
+  npcSpawn: { x: 307, y: 196 },
+  exit: { x: 576, y: 192, w: 32, h: 64 }
 }
 ```
 
@@ -354,10 +372,11 @@ CERTIFICATE
 
 ```js
 {
-  version: '2.0',
+  version: '3.0',
   timestamp: 0,
   saveDate: '27/10/2026, 10:00:00',
-  player: { x: 324, y: 292, direction: 'down' },
+  phase: 1,
+  player: { x: 308, y: 356, direction: 'down' },
   equipment: ['capacete'],
   completedChallenges: ['challenge_nr6']
 }
@@ -401,15 +420,15 @@ CERTIFICATE
 | AC1 | O menu abre com as três opções e “CONTINUAR” desabilitado sem save. |
 | AC2 | “NOVO JOGO” inicia a introdução e permite explorar depois dela. |
 | AC3 | O jogador se move nas quatro direções e não atravessa paredes/props. |
-| AC4 | Os 10 NPCs estão nas salas corretas e exibem prompt de interação. |
+| AC4 | Cada uma das 10 fases carrega sua sala temática, NPC, pôster de NR e props. |
 | AC5 | Cada diálogo termina em um desafio com quatro alternativas. |
 | AC6 | Resposta errada mostra a correta, permite dica e não entrega o EPI. |
 | AC7 | Resposta correta entrega o EPI correto, atualiza o sprite, o HUD e o save. |
 | AC8 | Os 10 desafios entregam exatamente os 10 EPIs previstos. |
-| AC9 | O manual abre por `M` e pelo mural, mostra 12 cartas e detalha todas. |
-| AC10 | O certificado aparece após o 10º EPI e lista todos os itens. |
+| AC9 | O manual abre por `M`, mostra 12 cartas e detalha todas. |
+| AC10 | A porta só abre após o EPI da fase; atravessá-la carrega a próxima fase, e a 10ª leva ao certificado com os 10 itens e NRs. |
 | AC11 | Confirmar o certificado volta ao menu e apaga o save. |
-| AC12 | Recarregar com save parcial restaura progresso e posição. |
+| AC12 | Recarregar com save parcial restaura fase, progresso e posição. |
 | AC13 | Recarregar com save completo abre diretamente o certificado. |
 | AC14 | `V` alterna o som e persiste a preferência. |
 | AC15 | `F` entra/sai de tela cheia quando suportado, sem erro fatal. |
