@@ -17,8 +17,11 @@ import { Inventory } from '../js/game/Inventory.js';
 import { Player } from '../js/game/Player.js';
 import { decorativeItems, isDecorationUnlocked } from '../js/data/decorations.js';
 import { SaveSystem } from '../js/engine/SaveSystem.js';
+import { PlayerDatabase, formatDuration } from '../js/engine/PlayerDatabase.js';
 import { readGamepad } from '../js/engine/Gamepad.js';
 import { PauseMenu, PAUSE_OPTIONS } from '../js/game/PauseMenu.js';
+import { RegistrationForm } from '../js/game/RegistrationForm.js';
+import { RankingScreen } from '../js/game/RankingScreen.js';
 
 const failures = [];
 
@@ -34,6 +37,9 @@ function check(condition, message) {
 class FakeInput {
   constructor(keys = []) {
     this.keys = new Set(keys);
+    this.downKeys = new Set();
+    this.textEvents = [];
+    this.gamepadKeys = new Set();
   }
 
   isJustPressed(code) {
@@ -44,11 +50,29 @@ class FakeInput {
     return false;
   }
 
+  isDown(code) {
+    return this.downKeys.has(code);
+  }
+
   confirmPressed() {
     for (const code of ['Space', 'Enter', 'KeyZ']) {
       if (this.isJustPressed(code)) return true;
     }
     return false;
+  }
+
+  isGamepadJustPressed(code) {
+    if (this.gamepadKeys.has(code)) {
+      this.gamepadKeys.delete(code);
+      return true;
+    }
+    return false;
+  }
+
+  consumeTextInput() {
+    const events = this.textEvents;
+    this.textEvents = [];
+    return events;
   }
 }
 
@@ -442,6 +466,118 @@ check(pause.consumeAction() === 'resume', 'Start fecha o menu de pausa');
 pause.open();
 pause.update(0.016, new FakeInput(['Escape']));
 check(pause.consumeAction() === 'resume', 'B fecha o menu de pausa');
+
+// ---------------------------------------------------------------------------
+// Cadastro e ranking
+// ---------------------------------------------------------------------------
+const playerStorage = new Map();
+const playerDb = new PlayerDatabase({
+  getItem: (key) => (playerStorage.has(key) ? playerStorage.get(key) : null),
+  setItem: (key, value) => playerStorage.set(key, String(value))
+});
+
+const ana = playerDb.register({
+  name: 'Ana Silva',
+  company: 'ACME',
+  email: 'ANA@ACME.COM',
+  phone: '(79) 99999-1111'
+});
+check(Boolean(ana?.id), 'Cadastro cria um jogador com ID');
+check(playerDb.getAll().length === 1, 'Cadastro entra no banco interno');
+check(playerDb.getRanking().length === 0, 'Jogador em andamento ainda não entra no ranking');
+
+playerDb.updateProgress(ana.id, { phase: 3, equipmentCount: 4, playTime: 120 });
+playerDb.complete(ana.id, 300);
+check(playerDb.getRanking().length === 1, 'Conclusão entra no ranking');
+check(playerDb.getRanking()[0].bestCompletionTime === 300, 'Ranking guarda o tempo de conclusão');
+
+const bruno = playerDb.register({
+  name: 'Bruno Souza',
+  company: 'Beta',
+  email: 'bruno@beta.com',
+  phone: '79988887777'
+});
+playerDb.complete(bruno.id, 180);
+const sortedRanking = playerDb.getRanking();
+check(
+  sortedRanking[0]?.id === bruno.id && sortedRanking[1]?.id === ana.id,
+  'Ranking ordena do menor para o maior tempo'
+);
+
+const anaAgain = playerDb.register({
+  name: 'Ana Silva',
+  company: 'ACME',
+  email: 'ana@acme.com',
+  phone: '(79) 99999-1111'
+});
+check(anaAgain?.id === ana.id, 'Mesmo e-mail reaproveita o cadastro do jogador');
+check(anaAgain?.attempts === 2, 'Novo jogo incrementa as tentativas do jogador');
+check(
+  anaAgain?.bestCompletionTime === 300 && anaAgain?.completionTime === null,
+  'Novo jogo preserva o melhor tempo e inicia nova tentativa'
+);
+
+const playerStats = playerDb.getStats();
+check(
+  playerStats.total === 2 && playerStats.completed === 2 && playerStats.attempts === 3,
+  'Estatísticas somam cadastros, conclusões e tentativas'
+);
+check(formatDuration(65) === '01:05', 'Tempo do ranking usa mm:ss');
+check(formatDuration(3661) === '1:01:01', 'Tempo do ranking usa h:mm:ss quando necessário');
+check(formatDuration(null) === '--:--', 'Tempo ausente aparece como --:--');
+
+const reloadedDb = new PlayerDatabase({
+  getItem: (key) => (playerStorage.has(key) ? playerStorage.get(key) : null),
+  setItem: (key, value) => playerStorage.set(key, String(value))
+});
+check(reloadedDb.getRanking().length === 2, 'Banco do ranking persiste no storage');
+
+const corruptedDb = new PlayerDatabase({
+  getItem: () => '{corrompido',
+  setItem: () => {}
+});
+check(corruptedDb.getAll().length === 0, 'Banco corrompido não impede o jogo de abrir');
+
+const registration = new RegistrationForm();
+registration.open();
+registration._values = {
+  name: 'Carla Lima',
+  company: 'JAMSOFT',
+  email: 'carla@jamsoft.com',
+  phone: '79999990000'
+};
+registration._focus = 4;
+registration.update(0.016, new FakeInput(['Enter']));
+const submittedRegistration = registration.consumeSubmitted();
+check(submittedRegistration?.name === 'Carla Lima', 'Formulário válido libera o início do jogo');
+registration.close();
+
+const invalidRegistration = new RegistrationForm();
+invalidRegistration.open();
+invalidRegistration._values = {
+  name: 'C',
+  company: 'JAMSOFT',
+  email: 'email-invalido',
+  phone: '123'
+};
+invalidRegistration._focus = 4;
+invalidRegistration.update(0.016, new FakeInput(['Enter']));
+check(
+  invalidRegistration.consumeSubmitted() === null && Boolean(invalidRegistration._error),
+  'Formulário inválido bloqueia o início e mostra erro'
+);
+invalidRegistration.close();
+
+const rankingScreen = new RankingScreen(playerDb);
+rankingScreen.open();
+check(rankingScreen.isOpen(), 'Tela de ranking abre');
+rankingScreen.update(0.016, new FakeInput(['Enter']));
+check(rankingScreen._mode === 'data', 'Botão Ver Dados abre a lista de cadastros');
+rankingScreen.update(0.016, new FakeInput(['Escape']));
+check(rankingScreen._mode === 'ranking', 'B/ESC volta dos dados para o ranking');
+rankingScreen.update(0.016, new FakeInput(['Escape']));
+check(rankingScreen.consumeClosed(), 'B/ESC fecha o ranking');
+rankingScreen.close();
 
 // ---------------------------------------------------------------------------
 // Save da fase

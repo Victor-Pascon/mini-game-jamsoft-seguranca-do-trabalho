@@ -1,6 +1,7 @@
 import { Renderer } from '../engine/Renderer.js';
 import { Input } from '../engine/Input.js';
 import { SaveSystem } from '../engine/SaveSystem.js';
+import { PlayerDatabase } from '../engine/PlayerDatabase.js';
 import { Sound } from '../engine/Sound.js';
 import { Collision } from '../engine/Collision.js';
 import { wrapText } from '../engine/TextUtils.js';
@@ -15,6 +16,8 @@ import { Challenge } from './Challenge.js';
 import { NormManual } from './NormManual.js';
 import { Inventory } from './Inventory.js';
 import { PauseMenu } from './PauseMenu.js';
+import { RegistrationForm } from './RegistrationForm.js';
+import { RankingScreen } from './RankingScreen.js';
 import { Certificate } from './Certificate.js';
 import { drawProp, drawRoomLabels, getNearbyInteractiveProp } from './Props.js';
 import { drawIcon, drawOverlay } from './EquipmentRenderer.js';
@@ -29,6 +32,8 @@ import { getChallengeByNpc } from '../data/challenges.js';
 import { dialogs } from '../data/dialogs.js';
 import { equipmentList, getEquipment } from '../data/equipment.js';
 
+const MENU_OPTION_COUNT = 4;
+
 /**
  * Game - orquestra o loop principal, estados, HUD, exploração, desafios,
  * manual de NRs e certificado final.
@@ -38,6 +43,7 @@ export class Game {
     this._renderer = new Renderer(canvas);
     this._input = new Input();
     this._save = new SaveSystem();
+    this._players = new PlayerDatabase();
     this._sound = new Sound();
     this._state = new StateManager();
     this._map = getPhaseMap(0);
@@ -47,6 +53,8 @@ export class Game {
     this._manual = new NormManual(this._sound);
     this._inventory = new Inventory(this._sound);
     this._pause = new PauseMenu(this._sound);
+    this._registration = new RegistrationForm(this._sound);
+    this._ranking = new RankingScreen(this._players, this._sound);
     this._certificate = new Certificate();
     this._dialog = new Dialog();
     this._challenge = new Challenge(this._sound);
@@ -56,6 +64,7 @@ export class Game {
     this._npcs = [];
     this._equipment = new EquipmentSystem();
     this._completedChallenges = [];
+    this._participantId = null;
 
     this._activeNpc = null;
     this._nearbyNpc = null;
@@ -126,6 +135,7 @@ export class Game {
     this._npcs = [];
     this._equipment = new EquipmentSystem();
     this._completedChallenges = [];
+    this._participantId = null;
     this._dialog = new Dialog();
     this._challenge = new Challenge(this._sound);
     this._introDialog = new Dialog();
@@ -183,8 +193,16 @@ export class Game {
     }
   }
 
-  _startNewGame() {
+  _openRegistration() {
+    this._registration.open();
+    this._input.beginTextInput();
+    this._sound.playSelect();
+  }
+
+  _beginNewGame(data) {
+    const participant = this._players.register(data);
     this._resetWorld(false);
+    this._participantId = participant?.id || null;
     this._save.delete();
     this._state.setState(STATE.EXPLORE);
     this._showIntro = true;
@@ -203,6 +221,7 @@ export class Game {
     }
 
     this._resetWorld(false);
+    this._participantId = saved.participantId || null;
     this._equipment.loadFromArray(saved.equipment);
     this._completedChallenges = Array.isArray(saved.completedChallenges)
       ? [...saved.completedChallenges]
@@ -235,6 +254,7 @@ export class Game {
     // Se o save foi feito imediatamente após o último EPI, retoma direto no
     // certificado em vez de deixar a jornada sem a recompensa final.
     if (this._equipment.isComplete()) {
+      this._completeRun();
       this._state.setState(STATE.CERTIFICATE);
       this._certificate.start();
       this._showIntro = false;
@@ -267,13 +287,27 @@ export class Game {
   }
 
   _saveProgress() {
+    if (this._participantId) {
+      this._players.updateProgress(this._participantId, {
+        phase: this._phaseIndex,
+        equipmentCount: this._equipment.getCount(),
+        playTime: this._playTime
+      });
+    }
+
     this._save.saveGame(
       this._player,
       this._equipment.toArray(),
       this._completedChallenges,
       this._phaseIndex,
-      this._playTime
+      this._playTime,
+      this._participantId
     );
+  }
+
+  _completeRun() {
+    if (!this._participantId) return null;
+    return this._players.complete(this._participantId, this._playTime);
   }
 
   update(deltaTime) {
@@ -313,6 +347,33 @@ export class Game {
     }
 
     if (this._state.is(STATE.MENU)) {
+      if (this._registration.isOpen()) {
+        this._registration.update(deltaTime, this._input);
+        const submitted = this._registration.consumeSubmitted();
+        if (submitted) {
+          this._input.endTextInput();
+          this._registration.close();
+          this._beginNewGame(submitted);
+          return;
+        }
+        if (this._registration.consumeCancelled()) {
+          this._input.endTextInput();
+          this._registration.close();
+          this._menuSelection = 0;
+          this._sound.playSelect();
+        }
+        return;
+      }
+
+      if (this._ranking.isOpen()) {
+        this._ranking.update(deltaTime, this._input);
+        if (this._ranking.consumeClosed()) {
+          this._ranking.close();
+          this._sound.playSelect();
+        }
+        return;
+      }
+
       this._updateMenu();
       return;
     }
@@ -339,18 +400,18 @@ export class Game {
 
   _updateMenu() {
     if (this._input.isJustPressed('ArrowUp') || this._input.isJustPressed('KeyW')) {
-      this._menuSelection = (this._menuSelection + 2) % 3;
+      this._menuSelection = (this._menuSelection + MENU_OPTION_COUNT - 1) % MENU_OPTION_COUNT;
       this._sound.playSelect();
     }
 
     if (this._input.isJustPressed('ArrowDown') || this._input.isJustPressed('KeyS')) {
-      this._menuSelection = (this._menuSelection + 1) % 3;
+      this._menuSelection = (this._menuSelection + 1) % MENU_OPTION_COUNT;
       this._sound.playSelect();
     }
 
     if (this._input.confirmPressed()) {
       if (this._menuSelection === 0) {
-        this._startNewGame();
+        this._openRegistration();
       } else if (this._menuSelection === 1) {
         if (this._save.hasSave()) {
           this._loadGame();
@@ -358,6 +419,9 @@ export class Game {
           this._sound.playWrong();
           this._showToast('Nenhum progresso salvo. Comece um novo jogo.', 2.2);
         }
+      } else if (this._menuSelection === 2) {
+        this._ranking.open();
+        this._sound.playSelect();
       } else {
         this._helpOpen = true;
         this._sound.playSelect();
@@ -633,6 +697,7 @@ export class Game {
 
     const nextIndex = this._phaseIndex + 1;
     if (nextIndex >= PHASES.length) {
+      this._completeRun();
       this._saveProgress();
       this._certificate.start();
       this._state.setState(STATE.CERTIFICATE);
@@ -703,6 +768,16 @@ export class Game {
 
   render() {
     if (this._state.is(STATE.MENU)) {
+      if (this._registration.isOpen()) {
+        this._registration.render(this._renderer);
+        return;
+      }
+
+      if (this._ranking.isOpen()) {
+        this._ranking.render(this._renderer);
+        return;
+      }
+
       this._renderMenu();
       if (this._helpOpen) this._renderMenuHelp();
       this._renderToast(420);
@@ -1041,15 +1116,16 @@ export class Game {
     const options = [
       { label: 'NOVO JOGO', icon: 'play', enabled: true },
       { label: 'CONTINUAR', icon: 'save', enabled: this._save.hasSave() },
+      { label: 'RANKING', icon: 'ranking', enabled: true },
       { label: 'COMO JOGAR', icon: 'book', enabled: true }
     ];
 
     const optionX = 150;
     const optionW = 310;
-    const optionH = 40;
+    const optionH = 34;
 
     options.forEach((option, index) => {
-      const y = 196 + index * 50;
+      const y = 190 + index * 40;
       const selected = this._menuSelection === index;
 
       renderer.drawRect(optionX + 3, y + 3, optionW, optionH, 'rgba(0, 0, 0, 0.42)');
@@ -1060,25 +1136,30 @@ export class Game {
       if (selected) {
         const pulse = 0.5 + 0.5 * Math.sin(this._time * 5);
         renderer.drawRect(optionX, y, optionW, 2, `rgba(255, 59, 74, ${0.45 + pulse * 0.45})`);
-        renderer.drawRect(optionX - 6, y + 10, 3, optionH - 20, COLORS.JAMSOFT_RED_LIGHT);
+        renderer.drawRect(optionX - 6, y + 8, 3, optionH - 16, COLORS.JAMSOFT_RED_LIGHT);
       }
 
       if (option.icon === 'play') {
-        renderer.drawRect(optionX + 20, y + 12, 4, 16, COLORS.JAMSOFT_RED);
-        renderer.drawRect(optionX + 24, y + 14, 3, 12, COLORS.JAMSOFT_RED_LIGHT);
-        renderer.drawRect(optionX + 27, y + 16, 3, 8, COLORS.JAMSOFT_WHITE);
+        renderer.drawRect(optionX + 20, y + 9, 4, 16, COLORS.JAMSOFT_RED);
+        renderer.drawRect(optionX + 24, y + 11, 3, 12, COLORS.JAMSOFT_RED_LIGHT);
+        renderer.drawRect(optionX + 27, y + 13, 3, 8, COLORS.JAMSOFT_WHITE);
       } else if (option.icon === 'save') {
-        renderer.drawRect(optionX + 18, y + 12, 16, 16, option.enabled ? COLORS.JAMSOFT_WHITE : '#4a4a4a');
-        renderer.drawRect(optionX + 22, y + 12, 8, 7, '#1a1a1a');
-        renderer.drawRect(optionX + 21, y + 21, 10, 5, COLORS.JAMSOFT_RED);
-        renderer.drawRect(optionX + 24, y + 23, 4, 2, '#1a1a1a');
+        renderer.drawRect(optionX + 18, y + 9, 16, 16, option.enabled ? COLORS.JAMSOFT_WHITE : '#4a4a4a');
+        renderer.drawRect(optionX + 22, y + 9, 8, 7, '#1a1a1a');
+        renderer.drawRect(optionX + 21, y + 18, 10, 5, COLORS.JAMSOFT_RED);
+        renderer.drawRect(optionX + 24, y + 20, 4, 2, '#1a1a1a');
+      } else if (option.icon === 'ranking') {
+        renderer.drawRect(optionX + 18, y + 20, 4, 6, '#ffd700');
+        renderer.drawRect(optionX + 24, y + 15, 4, 11, '#c0c0c0');
+        renderer.drawRect(optionX + 30, y + 11, 4, 15, '#cd7f32');
+        renderer.drawRect(optionX + 17, y + 27, 18, 1, COLORS.JAMSOFT_RED);
       } else {
-        renderer.drawRect(optionX + 18, y + 12, 16, 16, COLORS.JAMSOFT_RED);
-        renderer.drawRect(optionX + 21, y + 14, 10, 12, COLORS.JAMSOFT_WHITE);
-        renderer.drawRect(optionX + 25, y + 12, 2, 16, COLORS.JAMSOFT_RED);
+        renderer.drawRect(optionX + 18, y + 9, 16, 16, COLORS.JAMSOFT_RED);
+        renderer.drawRect(optionX + 21, y + 11, 10, 12, COLORS.JAMSOFT_WHITE);
+        renderer.drawRect(optionX + 25, y + 9, 2, 16, COLORS.JAMSOFT_RED);
       }
 
-      renderer.drawText(option.label, optionX + 46, y + 11, {
+      renderer.drawText(option.label, optionX + 46, y + 9, {
         color: option.enabled
           ? COLORS.JAMSOFT_WHITE
           : COLORS.JAMSOFT_SMOKE,
@@ -1089,13 +1170,13 @@ export class Game {
       if (index === 1) {
         renderer.drawRect(
           optionX + optionW - 22,
-          y + 17,
+          y + 14,
           6,
           6,
           option.enabled ? COLORS.SAFETY_GREEN : '#4a4a4a'
         );
         if (!option.enabled) {
-          renderer.drawText('sem save', optionX + optionW - 32, y + 27, {
+          renderer.drawText('sem save', optionX + optionW - 30, y + 23, {
             color: COLORS.JAMSOFT_SMOKE,
             font: FONTS.TINY,
             align: 'right',

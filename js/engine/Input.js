@@ -11,7 +11,7 @@ import { readGamepad } from './Gamepad.js';
 const GAME_KEYS = new Set([
   'ArrowUp', 'ArrowDown', 'ArrowLeft', 'ArrowRight',
   'KeyW', 'KeyA', 'KeyS', 'KeyD',
-  'Space', 'Enter', 'KeyZ', 'Escape', 'Backspace',
+  'Space', 'Enter', 'KeyZ', 'Escape', 'Backspace', 'Tab',
   'KeyM', 'KeyF', 'KeyV', 'KeyH', 'KeyR', 'KeyI',
   'Digit1', 'Digit2', 'Digit3', 'Digit4',
   'PageUp', 'PageDown'
@@ -25,6 +25,8 @@ export class Input {
     this._gamepadJustPressed = {};
     this._gamepadMovement = { x: 0, y: 0 };
     this._gamepadConnected = false;
+    this._textMode = false;
+    this._textInput = [];
     this._onKeyDown = this._onKeyDown.bind(this);
     this._onKeyUp = this._onKeyUp.bind(this);
     this._onBlur = this._onBlur.bind(this);
@@ -38,9 +40,30 @@ export class Input {
   }
 
   _onKeyDown(event) {
-    if (GAME_KEYS.has(event.code) && !event.ctrlKey && !event.metaKey && !event.altKey) {
+    const isTextCharacter = this._textMode
+      && event.key.length === 1
+      && !event.ctrlKey
+      && !event.metaKey
+      && !event.altKey;
+    const isTextControl = this._textMode
+      && (event.key === 'Backspace' || event.key === 'Tab' || event.key === 'Enter');
+
+    if (
+      isTextCharacter ||
+      isTextControl ||
+      (GAME_KEYS.has(event.code) && !event.ctrlKey && !event.metaKey && !event.altKey)
+    ) {
       event.preventDefault();
     }
+
+    if (this._textMode) {
+      if (event.key === 'Backspace') {
+        this._textInput.push({ type: 'backspace' });
+      } else if (isTextCharacter) {
+        this._textInput.push({ type: 'char', value: event.key });
+      }
+    }
+
     if (!this._keys[event.code]) {
       this._justPressed[event.code] = true;
     }
@@ -54,6 +77,7 @@ export class Input {
   _onBlur() {
     this._keys = {};
     this._justPressed = {};
+    this._textInput = [];
     this._clearGamepad();
   }
 
@@ -119,6 +143,36 @@ export class Input {
 
     this._gamepadConnected = true;
     this._applyGamepad(state);
+  }
+
+  /** Ativa a captura de texto para formulários desenhados no canvas. */
+  beginTextInput() {
+    this._textMode = true;
+    this._textInput = [];
+  }
+
+  /** Encerra a captura de texto e descarta caracteres pendentes. */
+  endTextInput() {
+    this._textMode = false;
+    this._textInput = [];
+  }
+
+  /** Consome os caracteres/backspaces digitados desde a última chamada. */
+  consumeTextInput() {
+    const events = this._textInput;
+    this._textInput = [];
+    return events;
+  }
+
+  isTextInputActive() {
+    return this._textMode;
+  }
+
+  /** Diferencia o botão do controle de uma tecla física do teclado. */
+  isGamepadJustPressed(code) {
+    const pressed = this._gamepadJustPressed[code] === true;
+    if (pressed) this._gamepadJustPressed[code] = false;
+    return pressed;
   }
 
   /** Descarta apenas os eventos de "acabou de pressionar" do frame atual. */
@@ -190,6 +244,8 @@ export class Input {
     window.removeEventListener('keydown', this._onKeyDown);
     window.removeEventListener('keyup', this._onKeyUp);
     window.removeEventListener('blur', this._onBlur);
+    this._textMode = false;
+    this._textInput = [];
     this._clearGamepad();
   }
 }

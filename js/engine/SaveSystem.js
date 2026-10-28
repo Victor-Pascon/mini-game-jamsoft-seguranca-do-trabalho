@@ -6,7 +6,7 @@
 export class SaveSystem {
   constructor() {
     this._key = 'jamsoft_seguranca_save';
-    this._version = '3.1';
+    this._version = '3.2';
   }
 
   save(data) {
@@ -55,7 +55,14 @@ export class SaveSystem {
     }
   }
 
-  saveGame(player, equipmentIds = [], completedChallenges = [], phase = 0, playTime = 0) {
+  saveGame(
+    player,
+    equipmentIds = [],
+    completedChallenges = [],
+    phase = 0,
+    playTime = 0,
+    participantId = null
+  ) {
     const playerData = player && typeof player.getSaveData === 'function'
       ? player.getSaveData()
       : {
@@ -69,6 +76,7 @@ export class SaveSystem {
       completedChallenges: Array.from(completedChallenges),
       phase: Number.isInteger(phase) ? phase : 0,
       playTime: Number.isFinite(playTime) ? Math.max(0, playTime) : 0,
+      participantId: typeof participantId === 'string' ? participantId : null,
       saveDate: new Date().toLocaleString('pt-BR')
     });
   }
@@ -85,6 +93,7 @@ export class SaveSystem {
         : [],
       phase: Number.isInteger(data.phase) ? data.phase : null,
       playTime: Number.isFinite(data.playTime) ? Math.max(0, data.playTime) : 0,
+      participantId: typeof data.participantId === 'string' ? data.participantId : null,
       saveDate: data.saveDate || null
     };
   }
