@@ -8,7 +8,7 @@ O jogo é rápido de aprender, jogável só com teclado ou controle Xbox Series 
 
 ## Jogue agora
 
-Pré-requisitos: **Node.js 18+** (apenas para o servidor local). O jogo não tem dependências externas.
+Pré-requisitos: **Node.js 22.13+** (servidor local e banco SQLite do ranking, via `node:sqlite` nativo). O jogo não tem dependências externas.
 
 ```bash
 npm start
@@ -131,6 +131,7 @@ Use `↑`/`↓`/D-pad/analógico para escolher, `Enter`/`A` para equipar/remover
 - **Cache do cenário estático**: piso, paredes, luzes e rótulos são renderizados uma vez em um canvas auxiliar, mantendo a exploração fluida em 640×480.
 - Loop com `requestAnimationFrame`, colisão por eixos, diálogos com efeito de máquina de escrever e transições de estado.
 - **WebAudio** para efeitos sonoros procedurais, com mute persistente.
+- **SQLite** (`data/ranking.db`, criado pelo `npm start`) guarda cadastros e ranking; API em `/api/ranking`, `/api/players`. O navegador mantém cópia em `localStorage` e continua jogável se o servidor cair (reenvia no próximo ranking aberto). O servidor escuta só em `127.0.0.1` (use `HOST=0.0.0.0` para expor); `data/` não é servido nem versionado.
 - **`localStorage`** para progresso (`jamsoft_seguranca_save`, versão **3.1**) e som (`jamsoft_seguranca_mute`). O save guarda fase, posição, EPIs, desafios, decoração e tempo jogado.
 - Testes sem navegador para dados, 10 fases, save, desafios, diálogo, manual, inventário, decoração, controle Xbox e menu de pausa (`scripts/smoke.mjs`).
 

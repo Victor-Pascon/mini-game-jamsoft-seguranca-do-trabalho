@@ -21,8 +21,35 @@ export class Challenge {
     this._time = 0;
   }
 
+  /**
+   * Embaralha as alternativas numa cópia dos dados (a fonte não é alterada)
+   * e recalcula o índice da correta. Evita repetir a ordem anterior.
+   */
+  _shuffleOptions(data, previousOrder = null) {
+    const count = data.options.length;
+    let order;
+    let tries = 0;
+    do {
+      order = Array.from({ length: count }, (_, index) => index);
+      for (let i = count - 1; i > 0; i--) {
+        const j = Math.floor(Math.random() * (i + 1));
+        [order[i], order[j]] = [order[j], order[i]];
+      }
+      tries += 1;
+    } while (previousOrder && tries < 10 && order.every((v, i) => v === previousOrder[i]));
+
+    this._order = order;
+    this._data = {
+      ...data,
+      options: order.map((original) => data.options[original]),
+      correct: order.indexOf(data.correct)
+    };
+  }
+
   startChallenge(data) {
-    this._data = data;
+    this._source = data;
+    this._order = null;
+    this._shuffleOptions(data);
     this._selected = 0;
     this._result = null;
     this._showHint = false;
@@ -52,6 +79,8 @@ export class Challenge {
         } else {
           this._result = null;
           this._showHint = false;
+          this._shuffleOptions(this._source, this._order);
+          this._selected = 0;
         }
       }
       return;

@@ -43,7 +43,11 @@ export class Game {
     this._renderer = new Renderer(canvas);
     this._input = new Input();
     this._save = new SaveSystem();
-    this._players = new PlayerDatabase();
+    this._players = new PlayerDatabase(null, {
+      remote: typeof location !== 'undefined' && location.protocol.startsWith('http')
+        ? location.origin
+        : null
+    });
     this._sound = new Sound();
     this._state = new StateManager();
     this._map = getPhaseMap(0);

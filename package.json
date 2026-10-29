@@ -6,7 +6,7 @@
   "description": "Mini-game educativo da JAMSOFT TECNOLOGIA sobre Segurança do Trabalho e Normas Regulamentadoras.",
   "author": "JAMSOFT TECNOLOGIA",
   "engines": {
-    "node": ">=18"
+    "node": ">=22.13"
   },
   "scripts": {
     "start": "node scripts/serve.mjs",

@@ -75,6 +75,10 @@ export class RankingScreen {
     this._dataPage = 0;
     this._action = 1;
     this._refresh();
+    // Traz o ranking do servidor; só atualiza se a tela ainda estiver aberta.
+    this._database.refresh?.().then((synced) => {
+      if (synced && this._open) this._refresh();
+    });
   }
 
   close() {

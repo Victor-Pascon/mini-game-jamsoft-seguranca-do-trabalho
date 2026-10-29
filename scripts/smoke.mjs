@@ -22,6 +22,7 @@ import { readGamepad } from '../js/engine/Gamepad.js';
 import { PauseMenu, PAUSE_OPTIONS } from '../js/game/PauseMenu.js';
 import { RegistrationForm } from '../js/game/RegistrationForm.js';
 import { RankingScreen } from '../js/game/RankingScreen.js';
+import { RankingStore } from '../server/RankingStore.mjs';
 
 const failures = [];
 
@@ -319,7 +320,8 @@ check(equipment.hasByNorm('NR-6'), 'Busca por NR encontra o capacete');
 const firstChallenge = challenges.find((challenge) => challenge.id === 'challenge_nr1');
 const challenge = new Challenge();
 challenge.startChallenge(firstChallenge);
-challenge.update(0.016, new FakeInput(['ArrowDown']));
+// As alternativas são embaralhadas a cada início; escolhe a correta pelo índice atual.
+challenge.update(0.016, new FakeInput([`Digit${challenge._data.correct + 1}`]));
 challenge.update(0.016, new FakeInput(['Space']));
 check(challenge.isCompleted() === false, 'Desafio correto aguarda confirmação');
 challenge.update(0.016, new FakeInput(['Space']));
@@ -332,6 +334,7 @@ check(challenge.getNorm() === 'NR-1', 'Desafio NR-1 informa a NR correta');
 // ---------------------------------------------------------------------------
 const wrongChallenge = new Challenge();
 wrongChallenge.startChallenge(challenges.find((item) => item.id === 'challenge_nr6'));
+wrongChallenge.update(0.016, new FakeInput([`Digit${((wrongChallenge._data.correct + 1) % 4) + 1}`]));
 wrongChallenge.update(0.016, new FakeInput(['Space']));
 check(wrongChallenge.isCompleted() === false, 'Resposta errada não conclui o desafio');
 wrongChallenge.update(0.016, new FakeInput(['Space']));
@@ -602,6 +605,74 @@ check(
 check(loadedSave?.playTime === 42.5, 'Save persiste o tempo de jogo');
 check(loadedSave?.player?.decoration === null, 'Save persiste a decoração removida');
 delete globalThis.localStorage;
+
+// ---------------------------------------------------------------------------
+// Ranking em SQLite (servidor) + sincronização do cliente
+// ---------------------------------------------------------------------------
+const rankingStore = new RankingStore(':memory:');
+const t0 = '2026-01-01T10:00:00.000Z';
+const t1 = '2026-01-01T11:00:00.000Z';
+
+check(rankingStore.save({ name: 'sem id' }) === null, 'RankingStore rejeita jogador sem id');
+
+rankingStore.save({ id: 'p1', name: 'Ana', completionTime: 300, updatedAt: t0, bestCompletedAt: t0 });
+rankingStore.save({ id: 'p2', name: 'Beto', completionTime: 200, updatedAt: t0, bestCompletedAt: t0 });
+rankingStore.save({ id: 'p3', name: 'Caio', updatedAt: t0 });
+check(
+  rankingStore.getRanking().map((p) => p.id).join(',') === 'p2,p1',
+  'RankingStore ordena o ranking do mais rápido ao mais lento, sem incompletos'
+);
+check(rankingStore.getAll().length === 3, 'RankingStore guarda todos os cadastros');
+
+rankingStore.save({ id: 'p2', name: 'Beto', completionTime: 900, updatedAt: t1 });
+check(
+  rankingStore.get('p2').bestCompletionTime === 200 && rankingStore.get('p2').completionTime === 900,
+  'RankingStore nunca piora o melhor tempo'
+);
+rankingStore.save({ id: 'p1', name: 'Ana', completionTime: 100, updatedAt: t1, bestCompletedAt: t1 });
+check(rankingStore.getRanking()[0].id === 'p1', 'RankingStore aceita um novo melhor tempo');
+rankingStore.save({ id: 'p4', name: '<b>x</b>\u0000'.repeat(20), completionTime: -5, phase: 99, updatedAt: t0 });
+check(
+  rankingStore.get('p4').name.length <= 40 && rankingStore.get('p4').completionTime === null
+    && rankingStore.get('p4').phase === 9,
+  'RankingStore sanitiza texto, tempo e fase'
+);
+rankingStore.close();
+
+const serverStore = new RankingStore(':memory:');
+serverStore.save({ id: 'srv', name: 'Do servidor', completionTime: 150, updatedAt: t1, bestCompletedAt: t1 });
+const requests = [];
+let serverUp = true;
+const realFetch = globalThis.fetch;
+globalThis.fetch = async (url, options = {}) => {
+  requests.push(`${options.method || 'GET'} ${url}`);
+  if (!serverUp) throw new TypeError('fetch failed');
+  const { pathname } = new URL(url);
+  if (options.method === 'PUT') {
+    const saved = serverStore.save({ ...JSON.parse(options.body), id: decodeURIComponent(pathname.split('/').pop()) });
+    return { ok: true, json: async () => ({ player: saved }) };
+  }
+  return { ok: true, json: async () => ({ players: serverStore.getAll() }) };
+};
+
+const syncStorage = { data: new Map(), getItem(k) { return this.data.get(k) ?? null; }, setItem(k, v) { this.data.set(k, v); } };
+const syncDb = new PlayerDatabase(syncStorage, { remote: 'http://feira.local/' });
+serverUp = false;
+const offline = syncDb.register({ name: 'Offline', email: 'off@x.com' });
+await syncDb.refresh();
+check(syncDb.syncError !== null && Boolean(syncDb.getById(offline.id)), 'servidor offline não derruba o cadastro local');
+serverUp = true;
+check((await syncDb.refresh()) === true, 'refresh() responde true com servidor no ar');
+await new Promise((resolve) => setTimeout(resolve, 0));
+check(syncDb.getById('srv')?.bestCompletionTime === 150, 'refresh() traz o ranking do servidor para o cache local');
+check(serverStore.get(offline.id) !== null, 'cadastro feito offline é reenviado ao servidor no refresh');
+check(requests.some((r) => r.startsWith('PUT http://feira.local/api/players/')), 'cliente envia PUT para /api/players/:id');
+
+syncDb.complete(offline.id, 77);
+await new Promise((resolve) => setTimeout(resolve, 0));
+check(serverStore.get(offline.id).bestCompletionTime === 77, 'conclusão é gravada no SQLite do servidor');
+globalThis.fetch = realFetch;
+serverStore.close();
 
 // ---------------------------------------------------------------------------
 // Resultado

@@ -482,7 +482,7 @@ CERTIFICATE
 
 ## 9. Fora de escopo
 
-- Multijogador, ranking online ou backend.
+- Multijogador ou ranking online/remoto. O ranking da feira fica em um SQLite local (`data/ranking.db`), servido pelo próprio `npm start`.
 - Mobile/touch como experiência principal.
 - Editor de fases ou de conteúdo em tempo real.
 - Voz, música licenciada ou assets externos.

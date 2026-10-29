@@ -5,6 +5,11 @@
  * manter os cadastros e os tempos de conclusão no próprio notebook da feira.
  * A implementação tolera storage indisponível/corrompido e cai para memória,
  * para que o jogo nunca deixe de abrir por causa do ranking.
+ *
+ * Com `remote` ativo, cada alteração também é enviada ao servidor (SQLite,
+ * ver server/RankingStore.mjs) e `refresh()` traz o ranking oficial de volta.
+ * O servidor offline nunca bloqueia o jogo: o cache local continua valendo e
+ * os cadastros pendentes são reenviados no próximo `refresh()`.
  */
 
 export const PLAYER_DB_KEY = 'jamsoft_seguranca_players';
@@ -111,7 +116,9 @@ export function formatDateTime(isoDate) {
 }
 
 export class PlayerDatabase {
-  constructor(storage = null) {
+  constructor(storage = null, { remote = null } = {}) {
+    this._remote = remote ? String(remote).replace(/\/+$/, '') : null;
+    this.syncError = null;
     this._key = PLAYER_DB_KEY;
     this._version = PLAYER_DB_VERSION;
     this._storage = storage;
@@ -166,6 +173,73 @@ export class PlayerDatabase {
       .slice(2, 6)}`;
   }
 
+  _request(path, options) {
+    return fetch(`${this._remote}${path}`, {
+      headers: { 'Content-Type': 'application/json' },
+      ...options
+    }).then((response) => {
+      if (!response.ok) throw new Error(`HTTP ${response.status}`);
+      return response.json();
+    });
+  }
+
+  _push(player) {
+    if (!this._remote || !player) return Promise.resolve(false);
+    return this._request(`/api/players/${encodeURIComponent(player.id)}`, {
+      method: 'PUT',
+      body: JSON.stringify(player)
+    }).then(
+      () => {
+        this.syncError = null;
+        return true;
+      },
+      (error) => {
+        this.syncError = error;
+        return false;
+      }
+    );
+  }
+
+  /**
+   * Mescla o banco do servidor no cache local e reenvia o que só existe aqui.
+   * Resolve com true se o servidor respondeu.
+   */
+  refresh() {
+    if (!this._remote) return Promise.resolve(false);
+    return this._request('/api/players').then(
+      (payload) => {
+        const remotePlayers = normalizePayload(payload?.players);
+        const local = this._readPlayers();
+        const merged = new Map(local.map((player) => [player.id, player]));
+        const remoteIds = new Set();
+
+        for (const remote of remotePlayers) {
+          remoteIds.add(remote.id);
+          const mine = merged.get(remote.id);
+          if (!mine || remote.updatedAt >= mine.updatedAt) {
+            const times = [remote.bestCompletionTime, mine?.bestCompletionTime]
+              .filter((time) => time !== null && time !== undefined);
+            merged.set(remote.id, {
+              ...remote,
+              bestCompletionTime: times.length ? Math.min(...times) : null
+            });
+          }
+        }
+
+        this._writePlayers([...merged.values()]);
+        this.syncError = null;
+        for (const player of local) {
+          if (!remoteIds.has(player.id)) this._push(player);
+        }
+        return true;
+      },
+      (error) => {
+        this.syncError = error;
+        return false;
+      }
+    );
+  }
+
   getAll() {
     return this._readPlayers().map(clonePlayer);
   }
@@ -218,6 +292,7 @@ export class PlayerDatabase {
       existing.playTime = 0;
       existing.attempts = integerBetween(existing.attempts + 1, 1, 9999, 1);
       this._writePlayers(players);
+      this._push(existing);
       return clonePlayer(existing);
     }
 
@@ -242,6 +317,7 @@ export class PlayerDatabase {
 
     players.push(player);
     this._writePlayers(players);
+    this._push(player);
     return clonePlayer(player);
   }
 
@@ -260,6 +336,7 @@ export class PlayerDatabase {
     player.playTime = finiteTime(progress.playTime) ?? player.playTime;
     player.updatedAt = new Date().toISOString();
     this._writePlayers(players);
+    this._push(player);
     return clonePlayer(player);
   }
 
@@ -281,6 +358,7 @@ export class PlayerDatabase {
     player.playTime = time;
     player.updatedAt = now;
     this._writePlayers(players);
+    this._push(player);
     return clonePlayer(player);
   }
 }
