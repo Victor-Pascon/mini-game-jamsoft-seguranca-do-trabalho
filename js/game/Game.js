@@ -324,12 +324,14 @@ export class Game {
     this._time += deltaTime;
     this._updateToast(deltaTime);
 
-    // Atalhos globais
-    if (this._input.isJustPressed('KeyF')) {
+    // Atalhos globais (desligados enquanto o jogador digita o nome no cadastro)
+    const typing = this._registration.isOpen();
+
+    if (!typing && this._input.isJustPressed('KeyF')) {
       this._toggleFullscreen();
     }
 
-    if (this._input.isJustPressed('KeyV')) {
+    if (!typing && this._input.isJustPressed('KeyV')) {
       const muted = this._sound.toggleMute();
       this._showToast(muted ? 'Som desligado' : 'Som ligado', 1.6);
     }
